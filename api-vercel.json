@@ -11,10 +11,5 @@
       "src": "/api/(.*)",
       "dest": "backend/src/index.js"
     }
-  ],
-  "env": {
-    "DATABASE_URL": "@database_url",
-    "JWT_SECRET": "@jwt_secret",
-    "FOOTBALL_API_KEY": "@football_api_key"
-  }
+  ]
 }

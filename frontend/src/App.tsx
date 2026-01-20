@@ -7,7 +7,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trophy, Calendar, MapPin, Clock } from "lucide-react";
 import Footer from "@/components/layout/Footer";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+
+// Mock data for when backend is not available
+const mockMatches = [
+  { id: 1, homeTeam: "Brazil", awayTeam: "Russia", date: "2024-02-15", time: "15:00", venue: "Stadium A" },
+  { id: 2, homeTeam: "India", awayTeam: "China", date: "2024-02-16", time: "18:00", venue: "Stadium B" }
+];
+
+const mockCompetitions = [
+  { id: 1, name: "BRICS Cup 2024", season: "2024", teams: [] },
+  { id: 2, name: "Championship League", season: "2024", teams: [] }
+];
 
 export default function App() {
   const [matches, setMatches] = useState([]);
@@ -20,6 +31,14 @@ export default function App() {
 
   const fetchData = async () => {
     try {
+      if (!API_BASE_URL) {
+        // Use mock data when no backend URL is configured
+        setMatches(mockMatches);
+        setCompetitions(mockCompetitions);
+        setLoading(false);
+        return;
+      }
+
       const [matchesRes, competitionsRes] = await Promise.all([
         fetch(`${API_BASE_URL}/api/competitions/matches`).catch(() => null),
         fetch(`${API_BASE_URL}/api/competitions`).catch(() => null)
@@ -28,14 +47,20 @@ export default function App() {
       if (matchesRes?.ok) {
         const data = await matchesRes.json();
         setMatches(data.slice(0, 6));
+      } else {
+        setMatches(mockMatches);
       }
 
       if (competitionsRes?.ok) {
         const data = await competitionsRes.json();
         setCompetitions(data.slice(0, 4));
+      } else {
+        setCompetitions(mockCompetitions);
       }
     } catch (error) {
-      console.error('Error fetching data');
+      console.error('Error fetching data, using mock data');
+      setMatches(mockMatches);
+      setCompetitions(mockCompetitions);
     } finally {
       setLoading(false);
     }
