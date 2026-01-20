@@ -10,12 +10,10 @@ export function Header() {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const pathname = usePathname();
 
-  // Close mobile menu when route changes
   useEffect(() => {
     setIsOpen(false);
   }, [pathname]);
 
-  // Enhanced keyboard and click outside handling
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
@@ -47,19 +45,26 @@ export function Header() {
   }, [isOpen]);
 
   const navLinks = [
-    { href: '/news', label: 'News', icon: '📰' },
-    { href: '/teams', label: 'Teams', icon: '⚽' },
-    { href: '/admin', label: 'Admin', icon: '⚙️' },
-    { href: '/referee', label: 'Referee', icon: '👨‍⚖️' },
-    { href: '/secretariat', label: 'Secretariat', icon: '📋' },
-    { href: '/public', label: 'Public', icon: '🌐' }
+    { href: '/news', label: 'News' },
+    { href: '/teams', label: 'Teams' },
+    { href: '/matches', label: 'Matches' },
+    { href: '/competitions', label: 'Competitions' },
+    { href: '/admin', label: 'Admin' },
+    { href: '/referee', label: 'Referee' },
+    { href: '/secretariat', label: 'Secretariat' },
+    { href: '/public', label: 'Public' }
+  ];
+
+  const authLinks = [
+    { href: '/login', label: 'Login' },
+    { href: '/signup', label: 'Sign Up' }
   ];
 
   const isActiveLink = (href: string) => pathname === href;
 
   return (
     <header className="bg-white shadow-sm border-b sticky top-0 z-50">
-      <nav className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
@@ -74,12 +79,12 @@ export function Header() {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex md:items-center md:space-x-1">
+          <div className="hidden lg:flex lg:items-center lg:space-x-1">
             {navLinks.map((link) => (
               <Link 
                 key={link.href}
                 href={link.href} 
-                className={`px-2 lg:px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`px-2 py-2 rounded-lg text-sm font-medium transition-colors ${
                   isActiveLink(link.href)
                     ? 'bg-blue-100 text-blue-700'
                     : 'text-gray-700 hover:bg-gray-100 hover:text-blue-600'
@@ -90,8 +95,41 @@ export function Header() {
             ))}
           </div>
 
-          {/* Mobile menu button */}
-          <div className="md:hidden">
+          {/* Desktop Auth Links */}
+          <div className="hidden lg:flex lg:items-center lg:space-x-2">
+            {authLinks.map((link) => (
+              <Link 
+                key={link.href}
+                href={link.href} 
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  link.href === '/signup'
+                    ? 'bg-blue-600 text-white hover:bg-blue-700'
+                    : 'text-gray-700 hover:bg-gray-100 hover:text-blue-600'
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+
+          {/* Mobile: Auth Links + Menu Button */}
+          <div className="lg:hidden flex items-center space-x-2">
+            {/* Mobile Auth Links - Always Visible */}
+            {authLinks.map((link) => (
+              <Link 
+                key={link.href}
+                href={link.href} 
+                className={`px-2 py-1 rounded text-xs font-medium ${
+                  link.href === '/signup'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-700 border border-gray-300'
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
+            
+            {/* Hamburger Menu Button */}
             <button 
               ref={buttonRef}
               onClick={() => setIsOpen(!isOpen)} 
@@ -101,11 +139,11 @@ export function Header() {
               aria-label={isOpen ? 'Close menu' : 'Open menu'}
             >
               {isOpen ? (
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               ) : (
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               )}
@@ -113,19 +151,19 @@ export function Header() {
           </div>
         </div>
 
-        {/* Mobile Navigation */}
+        {/* Mobile Navigation Menu */}
         {isOpen && (
           <div 
             ref={menuRef}
             id="mobile-menu"
-            className="md:hidden border-t border-gray-200 bg-white"
+            className="lg:hidden border-t border-gray-200 bg-white"
           >
             <div className="px-2 pt-2 pb-3 space-y-1">
               {navLinks.map((link) => (
                 <Link 
                   key={link.href}
                   href={link.href} 
-                  className={`block px-3 py-2 rounded-md text-base font-medium ${
+                  className={`block px-3 py-3 rounded-md text-base font-medium ${
                     isActiveLink(link.href)
                       ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-600'
                       : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600'
@@ -143,7 +181,7 @@ export function Header() {
       {/* Mobile backdrop */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/20 z-40 md:hidden" 
+          className="fixed inset-0 bg-black/20 z-40 lg:hidden" 
           onClick={() => setIsOpen(false)}
         />
       )}
