@@ -3,8 +3,15 @@ const cors = require('cors');
 
 const app = express();
 
-// CORS configuration - not needed for same domain
-app.use(cors());
+// CORS configuration
+const corsOptions = {
+  origin: '*',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Health check
