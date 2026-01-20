@@ -9,21 +9,22 @@ import Footer from "@/components/layout/Footer";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
-// Mock data for when backend is not available
-const mockMatches = [
-  { id: 1, homeTeam: "Brazil", awayTeam: "Russia", date: "2024-02-15", time: "15:00", venue: "Stadium A" },
-  { id: 2, homeTeam: "India", awayTeam: "China", date: "2024-02-16", time: "18:00", venue: "Stadium B" }
-];
-
-const mockCompetitions = [
-  { id: 1, name: "BRICS Cup 2024", season: "2024", teams: [] },
-  { id: 2, name: "Championship League", season: "2024", teams: [] }
-];
-
 export default function App() {
   const [matches, setMatches] = useState([]);
   const [competitions, setCompetitions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  // Mock data fallback
+  const mockMatches = [
+    { id: 1, homeTeam: "Brazil", awayTeam: "Russia", date: "2024-02-15", time: "15:00", venue: "Stadium A" },
+    { id: 2, homeTeam: "India", awayTeam: "China", date: "2024-02-16", time: "18:00", venue: "Stadium B" }
+  ];
+
+  const mockCompetitions = [
+    { id: 1, name: "BRICS Cup 2024", season: "2024", teams: [] },
+    { id: 2, name: "Championship League", season: "2024", teams: [] }
+  ];
 
   useEffect(() => {
     fetchData();
@@ -31,49 +32,40 @@ export default function App() {
 
   const fetchData = async () => {
     try {
-      console.log('API_BASE_URL:', API_BASE_URL);
+      setError('');
       
       if (!API_BASE_URL) {
-        console.log('No API URL configured, using mock data');
+        setError('⚠️ Backend not configured. Using demo data.');
         setMatches(mockMatches);
         setCompetitions(mockCompetitions);
         setLoading(false);
         return;
       }
 
-      console.log('Fetching from:', `${API_BASE_URL}/api/competitions/matches`);
-      console.log('Fetching from:', `${API_BASE_URL}/api/competitions`);
-
       const [matchesRes, competitionsRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/competitions/matches`).catch(err => {
-          console.error('Matches fetch error:', err);
-          return null;
-        }),
-        fetch(`${API_BASE_URL}/api/competitions`).catch(err => {
-          console.error('Competitions fetch error:', err);
-          return null;
-        })
+        fetch(`${API_BASE_URL}/api/competitions/matches`),
+        fetch(`${API_BASE_URL}/api/competitions`)
       ]);
 
-      if (matchesRes?.ok) {
+      if (matchesRes.ok) {
         const data = await matchesRes.json();
-        console.log('Matches data:', data);
         setMatches(data.slice(0, 6));
       } else {
-        console.error('Matches response not ok:', matchesRes?.status, matchesRes?.statusText);
-        setMatches(mockMatches);
+        throw new Error(`Matches API failed: ${matchesRes.status} ${matchesRes.statusText}`);
       }
 
-      if (competitionsRes?.ok) {
+      if (competitionsRes.ok) {
         const data = await competitionsRes.json();
-        console.log('Competitions data:', data);
         setCompetitions(data.slice(0, 4));
       } else {
-        console.error('Competitions response not ok:', competitionsRes?.status, competitionsRes?.statusText);
-        setCompetitions(mockCompetitions);
+        throw new Error(`Competitions API failed: ${competitionsRes.status} ${competitionsRes.statusText}`);
       }
     } catch (error) {
-      console.error('Fetch error - using mock data:', error.message);
+      const errorMsg = error.message.includes('fetch') 
+        ? '🔌 Cannot connect to backend server. Please check your internet connection.'
+        : `❌ API Error: ${error.message}`;
+      
+      setError(errorMsg);
       setMatches(mockMatches);
       setCompetitions(mockCompetitions);
     } finally {
@@ -87,8 +79,8 @@ export default function App() {
       <header className="border-b bg-white shadow-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2">
-            <Trophy className="h-8 w-8 text-blue-600" />
-            <span className="text-2xl font-bold text-gray-900">BIFA</span>
+            <Trophy className="h-6 w-6 md:h-8 md:w-8 text-blue-600" />
+            <span className="text-xl md:text-2xl font-bold text-gray-900">BIFA</span>
           </Link>
           <nav className="hidden md:flex gap-6">
             <Link href="/" className="text-gray-700 hover:text-blue-600 font-medium">Home</Link>
@@ -98,22 +90,29 @@ export default function App() {
             <Link href="/competitions" className="text-gray-700 hover:text-blue-600 font-medium">Competitions</Link>
             <Link href="/leagues" className="text-gray-700 hover:text-blue-600 font-medium">Leagues</Link>
           </nav>
-          <div className="flex gap-3">
-            <Button variant="outline" asChild>
+          <div className="flex gap-2 md:gap-3">
+            <Button variant="outline" size="sm" className="text-xs md:text-sm" asChild>
               <Link href="/login">Login</Link>
             </Button>
-            <Button asChild>
+            <Button size="sm" className="text-xs md:text-sm" asChild>
               <Link href="/signup">Sign Up</Link>
             </Button>
           </div>
         </div>
       </header>
 
+      {/* Error Message */}
+      {error && (
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mx-4 mt-4 rounded">
+          <p className="text-yellow-800 text-sm md:text-base">{error}</p>
+        </div>
+      )}
+
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-600 to-blue-800 text-white py-16">
+      <section className="bg-gradient-to-br from-blue-600 to-blue-800 text-white py-8 md:py-16">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">BRICS Football Association</h1>
-          <p className="text-xl text-blue-100">Your gateway to football competitions and matches</p>
+          <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold mb-4">BRICS Football Association</h1>
+          <p className="text-lg md:text-xl text-blue-100">Your gateway to football competitions and matches</p>
         </div>
       </section>
 
