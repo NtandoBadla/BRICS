@@ -47,7 +47,7 @@ export default function LoginPage() {
 
     try {
       // 1. Call your real API here
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -55,15 +55,21 @@ export default function LoginPage() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Invalid email or password');
+        throw new Error(errorData.error || errorData.message || 'Invalid email or password');
       }
 
       const responseData = await response.json();
       
       // Use the login function from AuthContext to handle state and redirection
-  
       const token = responseData.token || 'mock-jwt-token';
       login(token, responseData.user);
+      
+      // Redirect based on user role
+      if (responseData.user?.role === 'ADMIN') {
+        router.push('/admin');
+      } else {
+        router.push('/');
+      }
     } catch (err) {
       setErrors({ 
         root: err instanceof Error ? err.message : 'Something went wrong. Please try again.' 

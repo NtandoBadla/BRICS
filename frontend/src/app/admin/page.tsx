@@ -32,7 +32,7 @@ export default function AdminPage() {
     const fetchStats = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:5000/api/users', {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (response.ok) {
@@ -81,7 +81,7 @@ export default function AdminPage() {
   const loadFootballData = async () => {
     setFootballData(prev => ({ ...prev, loading: true }));
     try {
-      const response = await fetch('http://localhost:5000/api/football/leagues');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/football/leagues`);
       if (response.ok) {
         const data = await response.json();
         setFootballData({

@@ -79,7 +79,7 @@ export function Header() {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex lg:items-center lg:space-x-1">
+          <div className="hidden md:flex md:items-center md:space-x-1">
             {navLinks.map((link) => (
               <Link 
                 key={link.href}
@@ -96,7 +96,7 @@ export function Header() {
           </div>
 
           {/* Desktop Auth Links */}
-          <div className="hidden lg:flex lg:items-center lg:space-x-2">
+          <div className="hidden md:flex md:items-center md:space-x-2">
             {authLinks.map((link) => (
               <Link 
                 key={link.href}
@@ -113,7 +113,7 @@ export function Header() {
           </div>
 
           {/* Mobile: Auth Links + Menu Button */}
-          <div className="lg:hidden flex items-center space-x-2">
+          <div className="md:hidden flex items-center space-x-2">
             {/* Mobile Auth Links - Always Visible */}
             {authLinks.map((link) => (
               <Link 
@@ -156,7 +156,7 @@ export function Header() {
           <div 
             ref={menuRef}
             id="mobile-menu"
-            className="lg:hidden border-t border-gray-200 bg-white"
+            className="md:hidden border-t border-gray-200 bg-white"
           >
             <div className="px-2 pt-2 pb-3 space-y-1">
               {navLinks.map((link) => (
@@ -181,7 +181,7 @@ export function Header() {
       {/* Mobile backdrop */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/20 z-40 lg:hidden" 
+          className="fixed inset-0 bg-black/20 z-40 md:hidden" 
           onClick={() => setIsOpen(false)}
         />
       )}
