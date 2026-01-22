@@ -1,9 +1,9 @@
 # Vercel Monorepo Deployment Guide
 
 ## Prerequisites
+- Supabase account (for PostgreSQL database)
 - Vercel account
 - GitHub repository connected to Vercel
-- Database URL (Prisma Accelerate or direct PostgreSQL)
 
 ## Deployment Steps
 
@@ -17,9 +17,11 @@
 3. **Configure Environment Variables**:
    - In the project settings on Vercel, go to **Settings -> Environment Variables**.
    - Add the following variables. These are secrets for your backend.
-     - `DATABASE_URL`: Your full PostgreSQL connection string.
+     - `DATABASE_URL`: Your full PostgreSQL connection string from your Supabase project.
      - `JWT_SECRET`: A long, random string for signing tokens.
      - `FOOTBALL_API_KEY`: (Optional) Your key for the football data API.
+
+   - **Important**: In your Supabase dashboard, go to **Project Settings > Database > Connection string**. Use the **URI** connection string that is pooled (it will contain `pgbouncer=true`). This is crucial for serverless environments like Vercel.
 
 4. **Deploy**:
    - Click the "Deploy" button.

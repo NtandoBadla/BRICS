@@ -2,13 +2,14 @@ const express = require('express');
 const router = express.Router();
 const { auth, requireRole } = require('../middleware/auth');
 const {
-  createReferee,
-  getReferees,
-  getRefereeById,
-  updateReferee,
-  deleteReferee,
-  createDisciplinaryReport,
-  getDisciplinaryReports
+    createReferee,
+    getReferees,
+    getRefereeById,
+    updateReferee,
+    deleteReferee,
+    createDisciplinaryReport,
+    getDisciplinaryReports,
+    updateDisciplinaryReportStatus
 } = require('../controllers/refereeController');
 
 // --- Referee Registry Routes (Day 8) ---

@@ -2,10 +2,12 @@ const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { PrismaClient } = require('@prisma/client');
 require('dotenv').config();
 
 const app = express();
+const { auth, requireRole } = require('./middleware/auth');
+const refereeRoutes = require('./routes/refereeRoutes');
+const governanceRoutes = require('./routes/governanceRoutes');
 
 // CORS configuration
 const corsOptions = {
@@ -22,36 +24,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-const prisma = new PrismaClient();
-
-// Middleware to verify JWT token
-const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (!token) return res.sendStatus(401);
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) return res.sendStatus(403);
-    req.user = user;
-    next();
-  });
-};
-
-// Middleware to authorize based on user roles
-const authorize = (allowedRoles) => {
-  return (req, res, next) => {
-    if (!req.user || !req.user.role) {
-      return res.status(403).json({ error: 'Permission denied. User role not found.' });
-    }
-
-    if (allowedRoles.includes(req.user.role)) {
-      next(); // Role is allowed, proceed to the route handler
-    } else {
-      res.status(403).json({ error: 'Permission denied. You do not have the required privileges.' });
-    }
-  };
-};
+const prisma = require('./prisma');
 
 // Health check
 app.get('/', async (req, res) => {
@@ -82,9 +55,16 @@ app.post('/api/auth/register', async (req, res) => {
       return res.status(400).json({ error: 'All fields are required' });
     }
 
+    // Validate role to ensure it matches the database Enum
+    const validRoles = ['ADMIN', 'SECRETARIAT', 'REFEREE', 'TEAM_MANAGER', 'FEDERATION_OFFICIAL'];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ error: `Invalid role. Must be one of: ${validRoles.join(', ')}` });
+    }
+
     let user;
     try {
-      const existingUser = await prisma.user.findUnique({ where: { email } });
+      const normalizedEmail = email.toLowerCase();
+      const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
       if (existingUser) {
         return res.status(400).json({ error: 'User already exists' });
       }
@@ -92,14 +72,14 @@ app.post('/api/auth/register', async (req, res) => {
       const hashedPassword = await bcrypt.hash(password, 10);
       user = await prisma.user.create({
         data: {
-          email,
+          email: normalizedEmail,
           password: hashedPassword,
           firstName,
           lastName,
           role,
-          createdAt: new Date()
         }
       });
+      console.log(`✅ User registered in database: ${user.email} (${user.role})`);
     } catch (dbError) {
       console.error('Database Error:', dbError);
       if (dbError.code === 'P2021') {
@@ -188,7 +168,7 @@ app.get('/api/cms/pages', async (req, res) => {
 });
 
 // Create a new page (only for ADMINs)
-app.post('/api/cms/pages', authenticateToken, authorize(['ADMIN']), async (req, res) => {
+app.post('/api/cms/pages', auth, requireRole(['ADMIN']), async (req, res) => {
   try {
     const { title, slug, content, language = 'en', status = 'DRAFT' } = req.body;
     const newPage = await prisma.page.create({
@@ -261,7 +241,7 @@ app.get('/api/competitions/matches', (req, res) => {
 
 // Admin Dashboard Endpoints
 // Get all users (only for ADMINs)
-app.get('/api/users', authenticateToken, authorize(['ADMIN']), async (req, res) => {
+app.get('/api/users', auth, requireRole(['ADMIN']), async (req, res) => {
   try {
     const users = await prisma.user.findMany({
       select: {
@@ -292,6 +272,10 @@ app.get('/api/football/leagues', (req, res) => {
     ]
   });
 });
+
+// Feature Routes
+app.use('/api', refereeRoutes);
+app.use('/api/governance', governanceRoutes);
 
 // Error handling
 app.use((err, req, res, next) => {

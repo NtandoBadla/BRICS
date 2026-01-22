@@ -1,60 +1,35 @@
 const jwt = require('jsonwebtoken');
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
 
-const JWT_SECRET = process.env.JWT_SECRET;
+// Middleware to verify JWT token
+const auth = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
 
-if (!JWT_SECRET) {
-  throw new Error('JWT_SECRET environment variable is required');
-}
+  if (!token) return res.sendStatus(401); // Unauthorized
 
-const auth = async (req, res, next) => {
-  try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
-    
-    if (!token) {
-      return res.status(401).json({ error: 'Access denied. No token provided.' });
-    }
-
-    const decoded = jwt.verify(token, JWT_SECRET);
-    
-    // Get user details from database
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
-      include: {
-        referee: true
-      }
-    });
-
-    if (!user) {
-      return res.status(401).json({ error: 'Invalid token.' });
-    }
-
-    req.user = {
-      userId: user.id,
-      email: user.email,
-      role: user.role,
-      refereeId: user.referee?.id
-    };
-    
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) return res.sendStatus(403); // Forbidden
+    req.user = user;
     next();
-  } catch (error) {
-    res.status(401).json({ error: 'Invalid token.' });
-  }
+  });
 };
 
-const requireRole = (roles) => {
+// Middleware to authorize based on user roles
+const requireRole = (allowedRoles) => {
   return (req, res, next) => {
-    if (!req.user) {
-      return res.status(401).json({ error: 'Authentication required.' });
+    if (!req.user || !req.user.role) {
+      return res.status(403).json({ error: 'Permission denied. User role not found.' });
     }
 
-    if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ error: 'Access denied. Insufficient permissions.' });
+    if (allowedRoles.includes(req.user.role)) {
+      next(); // Role is allowed, proceed to the route handler
+    } else {
+      res.status(403).json({ error: 'Permission denied. You do not have the required privileges.' });
     }
-
-    next();
   };
 };
 
-module.exports = { auth, requireRole };
+module.exports = {
+  auth,
+  requireRole,
+};
