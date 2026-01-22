@@ -2,12 +2,19 @@ const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
 const app = express();
+
+if (!process.env.JWT_SECRET) {
+  console.warn('⚠️ WARNING: JWT_SECRET is not defined in environment variables. Login will fail.');
+}
+
 const { auth, requireRole } = require('./middleware/auth');
 const refereeRoutes = require('./routes/refereeRoutes');
 const governanceRoutes = require('./routes/governanceRoutes');
+const footballRoutes = require('./routes/footballRoutes');
 
 // CORS configuration
 const corsOptions = {
@@ -32,6 +39,19 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 const prisma = require('./prisma');
+
+// Check database connection on startup
+prisma.$connect()
+  .then(() => console.log('✅ Database connected successfully'))
+  .catch((e) => {
+    console.error('❌ Database connection failed:', e.message);
+    if (e.message.includes('6543')) {
+      console.error('💡 TIP: Port 6543 might be blocked. Try using port 5432 in your .env file for local development.');
+    }
+    if (e.message.includes('Can\'t reach database server')) {
+      console.error('💡 TIP: Check your hostname. For port 5432, use "db.[project-ref].supabase.co" instead of the pooler URL.');
+    }
+  });
 
 // Health check
 app.get('/', async (req, res) => {
@@ -113,7 +133,8 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-app.post('/api/auth/login', async (req, res) => {
+// Support both /api/auth/login and /api/login for convenience
+app.post(['/api/auth/login', '/api/login'], async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -121,13 +142,16 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const normalizedEmail = email.toLowerCase();
+    const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (!user) {
+      console.log(`Login failed: User not found for email ${normalizedEmail}`);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
+      console.log(`Login failed: Invalid password for user ${normalizedEmail}`);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
@@ -248,7 +272,7 @@ app.get('/api/competitions/matches', (req, res) => {
 
 // Admin Dashboard Endpoints
 // Get all users (only for ADMINs)
-app.get('/api/users', auth, requireRole(['ADMIN']), async (req, res) => {
+app.get('/api/users', auth, requireRole(['ADMIN', 'SECRETARIAT', 'FEDERATION_OFFICIAL']), async (req, res) => {
   try {
     const users = await prisma.user.findMany({
       select: {
@@ -270,19 +294,49 @@ app.get('/api/users', auth, requireRole(['ADMIN']), async (req, res) => {
   }
 });
 
-app.get('/api/football/leagues', (req, res) => {
-  res.json({
-    response: [
-      { league: { id: 1, name: 'Premier League', type: 'League' }, country: { name: 'England' } },
-      { league: { id: 2, name: 'La Liga', type: 'League' }, country: { name: 'Spain' } },
-      { league: { id: 3, name: 'Bundesliga', type: 'League' }, country: { name: 'Germany' } }
-    ]
-  });
+// Get system stats (only for ADMINs)
+app.get('/api/admin/stats', auth, requireRole(['ADMIN', 'SECRETARIAT', 'FEDERATION_OFFICIAL']), async (req, res) => {
+  try {
+    const [users, referees, documents, reports] = await Promise.all([
+      prisma.user.count(),
+      prisma.referee.count(),
+      prisma.document.count(),
+      prisma.disciplinaryReport.count()
+    ]);
+    res.json({ users, referees, documents, reports });
+  } catch (error) {
+    console.error('Stats Error:', error);
+    res.status(500).json({ error: 'Failed to fetch stats' });
+  }
+});
+
+// Role-specific Dashboard Endpoints (to ensure all users can access a dashboard)
+app.get('/api/secretariat/dashboard', auth, requireRole(['SECRETARIAT', 'ADMIN']), (req, res) => {
+  res.json({ message: "Secretariat Dashboard", user: req.user, status: 'active' });
+});
+
+app.get('/api/referee/dashboard', auth, requireRole(['REFEREE', 'ADMIN']), (req, res) => {
+  res.json({ message: "Referee Dashboard", user: req.user, status: 'active' });
+});
+
+app.get('/api/team-manager/dashboard', auth, requireRole(['TEAM_MANAGER', 'ADMIN']), (req, res) => {
+  res.json({ message: "Team Manager Dashboard", user: req.user, status: 'active' });
+});
+
+app.get('/api/federation/dashboard', auth, requireRole(['FEDERATION_OFFICIAL', 'ADMIN']), (req, res) => {
+  res.json({ message: "Federation Dashboard", user: req.user, status: 'active' });
 });
 
 // Feature Routes
 app.use('/api', refereeRoutes);
 app.use('/api/governance', governanceRoutes);
+app.use('/api/football', footballRoutes);
+
+// 404 Handler for unmatched routes
+app.use((req, res) => {
+  console.log(`❌ 404 Not Found: ${req.method} ${req.originalUrl}`);
+  res.status(404).json({ error: 'Route not found', path: req.originalUrl, method: req.method });
+});
 
 // Error handling
 app.use((err, req, res, next) => {

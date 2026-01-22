@@ -1,15 +1,15 @@
 const FOOTBALL_API_BASE = 'https://v3.football.api-sports.io';
 const API_KEY = process.env.FOOTBALL_API_KEY || 'XxXxXxXxXxXxXxXxXxXxXxXx';
 
-export const footballApi = {
+const footballApi = {
   async getLeagues(country, season) {
     try {
       let url = `${FOOTBALL_API_BASE}/leagues`;
       const params = new URLSearchParams();
-      
+
       if (country) params.append('country', country);
       if (season) params.append('season', season.toString());
-      
+
       if (params.toString()) {
         url += `?${params.toString()}`;
       }
@@ -60,11 +60,11 @@ export const footballApi = {
     try {
       let url = `${FOOTBALL_API_BASE}/teams`;
       const params = new URLSearchParams();
-      
+
       if (id) params.append('id', id.toString());
       if (league) params.append('league', league.toString());
       if (season) params.append('season', season.toString());
-      
+
       if (params.toString()) {
         url += `?${params.toString()}`;
       }
@@ -290,3 +290,5 @@ export const footballApi = {
     }
   }
 };
+
+module.exports = { footballApi };

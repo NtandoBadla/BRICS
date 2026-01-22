@@ -1,20 +1,26 @@
 const express = require('express');
 const router = express.Router();
 const { auth, requireRole } = require('../middleware/auth');
+const governanceController = require('../controllers/governanceController');
+
+// Destructure controller functions
 const {
-  uploadDocument,
+  createDocument,
   getDocuments,
-  getDocumentById,
   approveDocument,
   createTask,
   getTasks,
   updateTaskStatus
-} = require('../controllers/governanceController');
+} = governanceController;
+
+// Debug check to prevent "argument handler must be a function" error
+if (!createDocument || !auth) {
+  console.error('❌ Error: Missing imports in governanceRoutes. Check governanceController exports.');
+}
 
 // Document routes
-router.post('/documents', auth, requireRole(['ADMIN', 'SECRETARIAT']), uploadDocument);
+router.post('/documents', auth, requireRole(['ADMIN', 'SECRETARIAT']), createDocument);
 router.get('/documents', auth, getDocuments);
-router.get('/documents/:id', auth, getDocumentById);
 router.put('/documents/:id/approve', auth, requireRole(['ADMIN', 'SECRETARIAT']), approveDocument);
 
 // Task routes
