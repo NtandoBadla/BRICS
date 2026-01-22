@@ -38,6 +38,21 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+// Middleware to authorize based on user roles
+const authorize = (allowedRoles) => {
+  return (req, res, next) => {
+    if (!req.user || !req.user.role) {
+      return res.status(403).json({ error: 'Permission denied. User role not found.' });
+    }
+
+    if (allowedRoles.includes(req.user.role)) {
+      next(); // Role is allowed, proceed to the route handler
+    } else {
+      res.status(403).json({ error: 'Permission denied. You do not have the required privileges.' });
+    }
+  };
+};
+
 // Health check
 app.get('/', async (req, res) => {
   let dbStatus = 'unknown';
@@ -172,11 +187,8 @@ app.get('/api/cms/pages', async (req, res) => {
   }
 });
 
-app.post('/api/cms/pages', authenticateToken, async (req, res) => {
-  // A simple authorization check
-  if (req.user.role !== 'ADMIN') {
-    return res.status(403).json({ error: 'Permission denied' });
-  }
+// Create a new page (only for ADMINs)
+app.post('/api/cms/pages', authenticateToken, authorize(['ADMIN']), async (req, res) => {
   try {
     const { title, slug, content, language = 'en', status = 'DRAFT' } = req.body;
     const newPage = await prisma.page.create({
@@ -248,7 +260,8 @@ app.get('/api/competitions/matches', (req, res) => {
 });
 
 // Admin Dashboard Endpoints
-app.get('/api/users', authenticateToken, async (req, res) => {
+// Get all users (only for ADMINs)
+app.get('/api/users', authenticateToken, authorize(['ADMIN']), async (req, res) => {
   try {
     const users = await prisma.user.findMany({
       select: {
