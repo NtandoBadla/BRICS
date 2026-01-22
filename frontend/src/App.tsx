@@ -6,19 +6,36 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trophy, Calendar, MapPin, Clock } from "lucide-react";
 import Footer from "@/components/layout/Footer";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+import { api, getErrorMessage } from "@/lib/api";
 
 export default function App() {
-  const [matches, setMatches] = useState([]);
-  const [competitions, setCompetitions] = useState([]);
+  const [matches, setMatches] = useState<any[]>([]);
+  const [competitions, setCompetitions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   // Mock data fallback
   const mockMatches = [
-    { id: 1, homeTeam: "Brazil", awayTeam: "Russia", date: "2024-02-15", time: "15:00", venue: "Stadium A" },
-    { id: 2, homeTeam: "India", awayTeam: "China", date: "2024-02-16", time: "18:00", venue: "Stadium B" }
+    {
+      id: 1,
+      homeTeam: "Brazil",
+      homeTeamLogo: "https://placehold.co/60x60/png?text=BRA",
+      awayTeam: "Russia",
+      awayTeamLogo: "https://placehold.co/60x60/png?text=RUS",
+      date: "2024-02-15",
+      time: "15:00",
+      venue: "Stadium A"
+    },
+    {
+      id: 2,
+      homeTeam: "India",
+      homeTeamLogo: "https://placehold.co/60x60/png?text=IND",
+      awayTeam: "China",
+      awayTeamLogo: "https://placehold.co/60x60/png?text=CHN",
+      date: "2024-02-16",
+      time: "18:00",
+      venue: "Stadium B"
+    }
   ];
 
   const mockCompetitions = [
@@ -33,39 +50,16 @@ export default function App() {
   const fetchData = async () => {
     try {
       setError('');
-      
-      if (!API_BASE_URL) {
-        setError('⚠️ Backend not configured. Using demo data.');
-        setMatches(mockMatches);
-        setCompetitions(mockCompetitions);
-        setLoading(false);
-        return;
-      }
 
-      const [matchesRes, competitionsRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/competitions/matches`),
-        fetch(`${API_BASE_URL}/api/competitions`)
+      const [matchesData, competitionsData] = await Promise.all([
+        api.getMatches(),
+        api.getCompetitions()
       ]);
 
-      if (matchesRes.ok) {
-        const data = await matchesRes.json();
-        setMatches(data.slice(0, 6));
-      } else {
-        throw new Error(`Matches API failed: ${matchesRes.status} ${matchesRes.statusText}`);
-      }
-
-      if (competitionsRes.ok) {
-        const data = await competitionsRes.json();
-        setCompetitions(data.slice(0, 4));
-      } else {
-        throw new Error(`Competitions API failed: ${competitionsRes.status} ${competitionsRes.statusText}`);
-      }
+      setMatches((matchesData as any[]).slice(0, 6));
+      setCompetitions((competitionsData as any[]).slice(0, 4));
     } catch (error) {
-      const errorMsg = error.message.includes('fetch') 
-        ? '🔌 Cannot connect to backend server. Please check your internet connection.'
-        : `❌ API Error: ${error.message}`;
-      
-      setError(errorMsg);
+      setError(getErrorMessage(error));
       setMatches(mockMatches);
       setCompetitions(mockCompetitions);
     } finally {
@@ -125,7 +119,7 @@ export default function App() {
               <Link href="/matches">View All</Link>
             </Button>
           </div>
-          
+
           {loading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
@@ -141,8 +135,28 @@ export default function App() {
                       <Clock className="h-4 w-4 ml-2" />
                       <span>{match.time}</span>
                     </div>
-                    <CardTitle className="text-lg">
-                      {match.homeTeam} vs {match.awayTeam}
+                    <CardTitle className="text-lg flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {match.homeTeamLogo && (
+                          <img
+                            src={match.homeTeamLogo}
+                            alt={match.homeTeam}
+                            className="w-8 h-8 object-contain rounded-full bg-gray-100"
+                          />
+                        )}
+                        <span>{match.homeTeam}</span>
+                      </div>
+                      <span className="text-gray-400 text-sm">vs</span>
+                      <div className="flex items-center gap-2">
+                        <span>{match.awayTeam}</span>
+                        {match.awayTeamLogo && (
+                          <img
+                            src={match.awayTeamLogo}
+                            alt={match.awayTeam}
+                            className="w-8 h-8 object-contain rounded-full bg-gray-100"
+                          />
+                        )}
+                      </div>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -173,7 +187,7 @@ export default function App() {
               <Link href="/competitions">View All</Link>
             </Button>
           </div>
-          
+
           {loading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>

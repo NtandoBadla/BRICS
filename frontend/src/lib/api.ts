@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_URL = '';
 
 // Error types for better error handling
 export interface ApiError {
@@ -36,13 +36,13 @@ function createTimeoutController(timeout: number = REQUEST_TIMEOUT) {
 
 // Enhanced fetch wrapper with error handling
 async function apiRequest<T>(
-  endpoint: string, 
+  endpoint: string,
   options: RequestInit = {},
   timeout: number = REQUEST_TIMEOUT
 ): Promise<T> {
   const url = `${API_URL}${endpoint}`;
   const { controller, timeoutId } = createTimeoutController(timeout);
-  
+
   try {
     const response = await fetch(url, {
       headers: {
@@ -58,27 +58,27 @@ async function apiRequest<T>(
     // Handle different response types
     if (!response.ok) {
       let errorMessage = ERROR_MESSAGES[response.status] || 'An unexpected error occurred.';
-      
+
       try {
         const errorData = await response.json();
         errorMessage = errorData.error || errorData.message || errorMessage;
       } catch {
         // If response is not JSON, use status-based message
       }
-      
+
       const error: ApiError = {
         message: errorMessage,
         status: response.status,
         code: response.status.toString()
       };
-      
+
       throw error;
     }
 
     return await response.json();
   } catch (error) {
     clearTimeout(timeoutId);
-    
+
     // Handle abort/timeout errors
     if (error instanceof Error && error.name === 'AbortError') {
       throw {
@@ -87,21 +87,21 @@ async function apiRequest<T>(
         code: 'TIMEOUT_ERROR'
       } as ApiError;
     }
-    
+
     // Handle network errors
     if (error instanceof TypeError && error.message.includes('fetch')) {
       throw {
-        message: 'Unable to connect to the server. Please check your internet connection.',
+        message: 'Cannot connect to server. Check your internet or if Backend is running.',
         status: 0,
         code: 'NETWORK_ERROR'
       } as ApiError;
     }
-    
+
     // Re-throw API errors
     if (error && typeof error === 'object' && 'status' in error) {
       throw error;
     }
-    
+
     // Handle unexpected errors
     throw {
       message: 'An unexpected error occurred. Please try again.',
@@ -119,30 +119,30 @@ class ApiService {
     maxRetries: number = 2
   ): Promise<T> {
     let lastError: ApiError;
-    
+
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         return await apiRequest<T>(endpoint, options);
       } catch (error) {
         lastError = error as ApiError;
-        
+
         // Don't retry for client errors (4xx) except 408, 429
-        if (lastError.status >= 400 && lastError.status < 500 && 
-            lastError.status !== 408 && lastError.status !== 429) {
+        if (lastError.status >= 400 && lastError.status < 500 &&
+          lastError.status !== 408 && lastError.status !== 429) {
           throw lastError;
         }
-        
+
         // Don't retry on last attempt
         if (attempt === maxRetries) {
           throw lastError;
         }
-        
+
         // Exponential backoff: wait 1s, then 2s, then 4s
         const delay = Math.pow(2, attempt) * 1000;
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
-    
+
     throw lastError!;
   }
 
@@ -153,12 +153,12 @@ class ApiService {
     });
   }
 
-  async register(data: { 
-    email: string; 
-    password: string; 
-    firstName: string; 
-    lastName: string; 
-    role?: string 
+  async register(data: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    role?: string
   }) {
     return this.requestWithRetry('/api/auth/register', {
       method: 'POST',
@@ -167,7 +167,7 @@ class ApiService {
   }
 
   async getUsers(token: string) {
-    return this.requestWithRetry('/api/users', {
+    return this.requestWithRetry<any[]>('/api/users', {
       headers: { 'Authorization': `Bearer ${token}` },
     });
   }
@@ -181,11 +181,15 @@ class ApiService {
   }
 
   async getCompetitions() {
-    return this.requestWithRetry('/api/competitions');
+    return this.requestWithRetry<any[]>('/api/competitions');
   }
 
   async getMatches() {
-    return this.requestWithRetry('/api/competitions/matches');
+    return this.requestWithRetry<any[]>('/api/competitions/matches');
+  }
+
+  async getFootballLeagues() {
+    return this.requestWithRetry<any>('/api/football/leagues');
   }
 
   // Health check endpoint
@@ -209,18 +213,18 @@ export function useApiError() {
   const handleError = (error: unknown): ApiError => {
     const apiError: ApiError = {
       message: getErrorMessage(error),
-      status: (error && typeof error === 'object' && 'status' in error) 
-        ? (error as ApiError).status 
+      status: (error && typeof error === 'object' && 'status' in error)
+        ? (error as ApiError).status
         : 500,
-      code: (error && typeof error === 'object' && 'code' in error) 
-        ? (error as ApiError).code 
+      code: (error && typeof error === 'object' && 'code' in error)
+        ? (error as ApiError).code
         : 'UNKNOWN_ERROR'
     };
-    
+
     console.error('API Error:', error);
     return apiError;
   };
-  
+
   return { handleError };
 }
 

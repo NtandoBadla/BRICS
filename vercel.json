@@ -3,10 +3,7 @@
   "builds": [
     {
       "src": "frontend/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": ".next"
-      }
+      "use": "@vercel/next"
     },
     {
       "src": "backend/src/index.js",
@@ -16,16 +13,11 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "backend/src/index.js"
+      "dest": "/backend/src/index.js"
     },
     {
       "src": "/(.*)",
-      "dest": "frontend/$1"
+      "dest": "/frontend/$1"
     }
-  ],
-  "env": {
-    "DATABASE_URL": "@database-url",
-    "JWT_SECRET": "@jwt-secret",
-    "FOOTBALL_API_KEY": "@football-api-key"
-  }
+  ]
 }

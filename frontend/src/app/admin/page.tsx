@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -7,8 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Settings, Shield, Trophy, Calendar, FileText, UserPlus, Building, Eye } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import Footer from '@/components/layout/Footer';
+import { api, getErrorMessage } from '@/lib/api';
 
 export default function AdminPage() {
+  const router = useRouter();
   const { user, logout } = useAuth();
   const [stats, setStats] = useState({
     totalUsers: 0,
@@ -21,10 +24,12 @@ export default function AdminPage() {
     leagues: any[];
     visible: boolean;
     loading: boolean;
+    error?: string;
   }>({
     leagues: [],
     visible: false,
-    loading: false
+    loading: false,
+    error: undefined
   });
 
   useEffect(() => {
@@ -32,11 +37,8 @@ export default function AdminPage() {
     const fetchStats = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (response.ok) {
-          const users = await response.json();
+        if (token) {
+          const users = await api.getUsers(token);
           setStats(prev => ({ ...prev, totalUsers: users.length }));
         }
       } catch (error) {
@@ -51,7 +53,7 @@ export default function AdminPage() {
 
   const handleAddUser = () => {
     // Navigate to user creation form
-    window.location.href = '/signup';
+    router.push('/signup');
   };
 
   const handleCreateCompetition = () => {
@@ -79,20 +81,22 @@ export default function AdminPage() {
   };
 
   const loadFootballData = async () => {
-    setFootballData(prev => ({ ...prev, loading: true }));
+    setFootballData(prev => ({ ...prev, loading: true, error: undefined }));
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/football/leagues`);
-      if (response.ok) {
-        const data = await response.json();
-        setFootballData({
-          leagues: data.response || [],
-          visible: true,
-          loading: false
-        });
-      }
+      const data = await api.getFootballLeagues();
+      setFootballData({
+        leagues: data.response || [],
+        visible: true,
+        loading: false,
+        error: undefined
+      });
     } catch (error) {
       console.error('Error loading football data:', error);
-      setFootballData(prev => ({ ...prev, loading: false }));
+      setFootballData(prev => ({
+        ...prev,
+        loading: false,
+        error: getErrorMessage(error)
+      }));
     }
   };
 
@@ -195,12 +199,17 @@ export default function AdminPage() {
                 <CardTitle>Football Leagues Data</CardTitle>
               </CardHeader>
               <CardContent>
+                {footballData.error && (
+                  <div className="p-4 mb-4 text-red-700 bg-red-100 rounded border border-red-400">
+                    {footballData.error}
+                  </div>
+                )}
                 <div className="max-h-96 overflow-y-auto">
                   {footballData.leagues.length > 0 ? (
                     <div className="grid gap-4">
                       {footballData.leagues.slice(0, 10).map((league, i) => (
-                        <div key={i} className="p-4 border rounded-lg cursor-pointer hover:bg-gray-50" 
-                             onClick={() => window.location.href = `/league/${league.league?.id}`}>
+                        <div key={i} className="p-4 border rounded-lg cursor-pointer hover:bg-gray-50"
+                          onClick={() => router.push(`/league/${league.league?.id}`)}>
                           <div className="flex items-center gap-4">
                             {league.league?.logo && (
                               <img src={league.league.logo} alt="League Logo" className="w-12 h-12 object-contain" />
@@ -219,9 +228,9 @@ export default function AdminPage() {
                     <p className="text-gray-500">No football data available</p>
                   )}
                 </div>
-                <Button 
+                <Button
                   onClick={() => setFootballData(prev => ({ ...prev, visible: false }))}
-                  variant="outline" 
+                  variant="outline"
                   className="mt-4"
                 >
                   Hide Data
@@ -307,7 +316,7 @@ export default function AdminPage() {
             </CardContent>
           </Card>
         </main>
-        
+
         <Footer />
       </div>
     </ProtectedRoute>

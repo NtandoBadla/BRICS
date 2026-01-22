@@ -1,5 +1,8 @@
-import prisma from '../src/prisma.js';
-import bcrypt from 'bcryptjs';
+const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcryptjs');
+require('dotenv').config();
+
+const prisma = new PrismaClient();
 
 async function seedAdmin() {
   try {
@@ -15,7 +18,7 @@ async function seedAdmin() {
 
     // Create admin user
     const hashedPassword = await bcrypt.hash('admin123', 10);
-    
+
     const admin = await prisma.user.create({
       data: {
         email: 'admin@bifa.com',
@@ -26,11 +29,9 @@ async function seedAdmin() {
       }
     });
 
-    console.log('Admin user created:');
-    console.log('Email: admin@bifa.com');
-    console.log('Password: admin123');
-    console.log('Role: ADMIN');
-    
+    console.log('Admin user created successfully:');
+    console.log(`- Email: ${admin.email}`);
+    console.log(`- Role: ${admin.role}`);
   } catch (error) {
     console.error('Error creating admin user:', error);
   } finally {
