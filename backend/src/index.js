@@ -8,7 +8,8 @@ require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 const app = express();
 
 // Debug: Check for critical environment variables on startup
-const requiredVars = ['DATABASE_URL', '(key => !process.env[key]);
+const requiredVars = ['DATABASE_URL', 'JWT_SECRET'];
+const missingVars = requiredVars.filter(key => !process.env[key]);
 
 if (missingVars.length > 0) {
   console.error(`❌ CRITICAL ERROR: Missing environment variables: ${missingVars.join(', ')}`);
@@ -60,6 +61,7 @@ prisma.$connect()
   .then(() => console.log('✅ Database connected successfully'))
   .catch((e) => {
     console.error('❌ Database connection failed:', e.message);
+    console.log('DEBUG: DATABASE_URL is', process.env.DATABASE_URL ? 'DEFINED' : 'UNDEFINED');
     console.error('Stack:', e.stack);
     if (e.message.includes('6543')) {
       console.error('💡 TIP: Port 6543 might be blocked. Try using port 5432 in your .env file for local development.');
