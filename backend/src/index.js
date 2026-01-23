@@ -7,8 +7,19 @@ require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
 const app = express();
 
-if (!process.env.JWT_SECRET) {
-  console.warn('⚠️ WARNING: JWT_SECRET is not defined in environment variables. Login will fail.');
+// Debug: Check for critical environment variables on startup
+const requiredVars = ['DATABASE_URL', 'DIRECT_URL', 'JWT_SECRET'];
+const missingVars = requiredVars.filter(key => !process.env[key]);
+
+if (missingVars.length > 0) {
+  console.error(`❌ CRITICAL ERROR: Missing environment variables: ${missingVars.join(', ')}`);
+} else {
+  console.log('✅ Core environment variables detected.');
+}
+
+// Check for Football API Key (replace 'FOOTBALL_API_KEY' with the actual name your code uses)
+if (!process.env.FOOTBALL_API_KEY && !process.env.API_FOOTBALL_KEY) {
+  console.warn('⚠️ WARNING: No Football API Key found (FOOTBALL_API_KEY or API_FOOTBALL_KEY). External data fetching may fail.');
 }
 
 const { auth, requireRole } = require('./middleware/auth');
@@ -45,6 +56,7 @@ prisma.$connect()
   .then(() => console.log('✅ Database connected successfully'))
   .catch((e) => {
     console.error('❌ Database connection failed:', e.message);
+    console.error('Stack:', e.stack);
     if (e.message.includes('6543')) {
       console.error('💡 TIP: Port 6543 might be blocked. Try using port 5432 in your .env file for local development.');
     }
@@ -344,15 +356,21 @@ app.get('/api/federation/dashboard', auth, requireRole(['FEDERATION_OFFICIAL', '
   res.json({ message: "Federation Dashboard", user: req.user, status: 'active' });
 });
 
-// Safe Football Data Endpoints (handling missing tables/errors)
+// Feature Routes
+// Note: We mount these BEFORE the safe endpoints so specific routes (like /api/football/sync) take precedence
+app.use('/api', refereeRoutes);
+app.use('/api/governance', governanceRoutes);
+app.use('/api/football', footballRoutes);
+
+// Safe Fallback Endpoints for Football Data
+// These run only if the specific routes in footballRoutes didn't handle the request
 app.get('/api/football/teams', auth, async (req, res) => {
   try {
-    // Check if model exists to avoid crash if schema is outdated
     if (!prisma.team) return res.json([]);
     const teams = await prisma.team.findMany();
     res.json(teams);
   } catch (error) {
-    console.error('Error fetching teams:', error);
+    console.error('Error fetching teams from DB:', error);
     res.json([]);
   }
 });
@@ -363,15 +381,11 @@ app.get('/api/football/matches', auth, async (req, res) => {
     const matches = await prisma.match.findMany();
     res.json(matches);
   } catch (error) {
-    console.error('Error fetching matches:', error);
+    console.error('Error fetching matches from DB:', error);
     res.json([]);
   }
 });
 
-// Feature Routes
-app.use('/api', refereeRoutes);
-app.use('/api/governance', governanceRoutes);
-app.use('/api/football', footballRoutes);
 
 // 404 Handler for unmatched routes
 app.use((req, res) => {
