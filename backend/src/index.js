@@ -72,6 +72,19 @@ app.get('/', async (req, res) => {
   });
 });
 
+// Helper to determine redirect URL based on role
+const getDashboardUrl = (role) => {
+  if (!role) return '/'; // Return default for undefined roles
+  switch (role.toString().trim().toUpperCase()) { // Make comparison case-insensitive and trim whitespace
+    case 'ADMIN': return '/admin';
+    case 'SECRETARIAT': return '/secretariat';
+    case 'REFEREE': return '/referee';
+    case 'TEAM_MANAGER': return '/team-manager';
+    case 'FEDERATION_OFFICIAL': return '/federation';
+    default: return '/';
+  }
+};
+
 // Auth endpoints
 app.post('/api/auth/register', async (req, res) => {
   console.log('Register attempt:', req.body.email);
@@ -125,6 +138,7 @@ app.post('/api/auth/register', async (req, res) => {
     res.status(201).json({
       message: 'User registered successfully',
       user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role },
+      redirectUrl: getDashboardUrl(user.role),
       token
     });
   } catch (error) {
@@ -170,6 +184,7 @@ app.post(['/api/auth/login', '/api/login'], async (req, res) => {
         lastName: user.lastName,
         role: user.role
       },
+      redirectUrl: getDashboardUrl(user.role),
       token
     });
   } catch (error) {
@@ -297,13 +312,15 @@ app.get('/api/users', auth, requireRole(['ADMIN', 'SECRETARIAT', 'FEDERATION_OFF
 // Get system stats (only for ADMINs)
 app.get('/api/admin/stats', auth, requireRole(['ADMIN', 'SECRETARIAT', 'FEDERATION_OFFICIAL']), async (req, res) => {
   try {
-    const [users, referees, documents, reports] = await Promise.all([
+    const [users, referees, documents, reports, teams, matches] = await Promise.all([
       prisma.user.count(),
       prisma.referee.count(),
       prisma.document.count(),
-      prisma.disciplinaryReport.count()
+      prisma.disciplinaryReport.count(),
+      prisma.team.count().catch(() => 0), // Add football stats, fallback to 0 on error
+      prisma.match.count().catch(() => 0)  // Add football stats, fallback to 0 on error
     ]);
-    res.json({ users, referees, documents, reports });
+    res.json({ users, referees, documents, reports, teams, matches });
   } catch (error) {
     console.error('Stats Error:', error);
     res.status(500).json({ error: 'Failed to fetch stats' });
@@ -325,6 +342,30 @@ app.get('/api/team-manager/dashboard', auth, requireRole(['TEAM_MANAGER', 'ADMIN
 
 app.get('/api/federation/dashboard', auth, requireRole(['FEDERATION_OFFICIAL', 'ADMIN']), (req, res) => {
   res.json({ message: "Federation Dashboard", user: req.user, status: 'active' });
+});
+
+// Safe Football Data Endpoints (handling missing tables/errors)
+app.get('/api/football/teams', auth, async (req, res) => {
+  try {
+    // Check if model exists to avoid crash if schema is outdated
+    if (!prisma.team) return res.json([]);
+    const teams = await prisma.team.findMany();
+    res.json(teams);
+  } catch (error) {
+    console.error('Error fetching teams:', error);
+    res.json([]);
+  }
+});
+
+app.get('/api/football/matches', auth, async (req, res) => {
+  try {
+    if (!prisma.match) return res.json([]);
+    const matches = await prisma.match.findMany();
+    res.json(matches);
+  } catch (error) {
+    console.error('Error fetching matches:', error);
+    res.json([]);
+  }
 });
 
 // Feature Routes
