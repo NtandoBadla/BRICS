@@ -216,6 +216,8 @@ const footballApi = {
       let url = `${FOOTBALL_API_BASE}/fixtures?league=${league}&season=${season}`;
       if (date) url += `&date=${date}`;
 
+      console.log('Fetching fixtures from:', url);
+
       const response = await fetch(url, {
         method: 'GET',
         headers: {
@@ -225,13 +227,16 @@ const footballApi = {
       });
 
       if (!response.ok) {
+        console.error(`API Error: ${response.status} ${response.statusText}`);
         throw new Error(`API Error: ${response.status}`);
       }
 
       const data = await response.json();
+      console.log('API Response:', { results: data.results, errors: data.errors });
+      
       return data;
     } catch (error) {
-      console.error('Football API Error:', error);
+      console.error('Football API Error (Fixtures):', error);
       throw error;
     }
   },

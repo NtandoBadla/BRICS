@@ -1,8 +1,8 @@
 {
   "version": 2,
   "env": {
-    "DATABASE_URL": "postgresql://postgres.etqflzwzmvgwiuklaypp:BokamosoBadla@aws-1-eu-west-3.pooler.supabase.com:6543/postgres?pgbouncer=true",
-    "DIRECT_URL": "postgresql://postgres.etqflzwzmvgwiuklaypp:BokamosoBadla@aws-1-eu-west-3.pooler.supabase.com:5432/postgres",
+    "DATABASE_URL": "postgresql://postgres.etqflzwzmvgwiuklaypp:BokamosoBadla@aws-1-eu-west-3.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1&pool_timeout=0",
+    "DIRECT_URL": "postgresql://postgres.etqflzwzmvgwiuklaypp:BokamosoBadla@db.etqflzwzmvgwiuklaypp.supabase.co:5432/postgres",
     "JWT_SECRET": "bifa_2026_secure_jwt_key_a8f3d9e2c1b7f4a6e9d2c5b8a1f4e7d0",
     "FOOTBALL_API_KEY": "7a6e6148c30e4883dde6ea4ee0b08fa2",
     "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0cWZsend6bXZnd2l1a2xheXBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkwODIyNTksImV4cCI6MjA4NDY1ODI1OX0.FgJQJzqvKea8XkDCkk-b5OhreKinIXCf_GatM7_ZyG0"

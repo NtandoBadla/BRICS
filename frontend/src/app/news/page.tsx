@@ -23,19 +23,82 @@ export default function NewsPage() {
         if (fixturesRes?.ok) {
           const data = await fixturesRes.json();
           setFixtures(data.response?.slice(0, 10) || []);
+        } else {
+          // Fallback data for fixtures
+          setFixtures([
+            {
+              fixture: { date: '2024-02-15T15:00:00Z' },
+              league: { name: 'BRICS Championship' },
+              teams: {
+                home: { name: 'Brazil', logo: 'https://placehold.co/40x40/png?text=BRA' },
+                away: { name: 'Russia', logo: 'https://placehold.co/40x40/png?text=RUS' }
+              }
+            },
+            {
+              fixture: { date: '2024-02-16T18:00:00Z' },
+              league: { name: 'BRICS Championship' },
+              teams: {
+                home: { name: 'India', logo: 'https://placehold.co/40x40/png?text=IND' },
+                away: { name: 'China', logo: 'https://placehold.co/40x40/png?text=CHN' }
+              }
+            }
+          ]);
         }
 
         if (transfersRes?.ok) {
           const data = await transfersRes.json();
           setTransfers(data.response?.slice(0, 8) || []);
+        } else {
+          // Fallback data for transfers
+          setTransfers([
+            {
+              player: { name: 'João Silva', photo: 'https://placehold.co/48x48/png?text=JS' },
+              transfers: [{
+                teams: { out: { name: 'São Paulo' }, in: { name: 'Flamengo' } },
+                date: '2024-01-15'
+              }]
+            },
+            {
+              player: { name: 'Dmitri Petrov', photo: 'https://placehold.co/48x48/png?text=DP' },
+              transfers: [{
+                teams: { out: { name: 'CSKA Moscow' }, in: { name: 'Spartak Moscow' } },
+                date: '2024-01-20'
+              }]
+            }
+          ]);
         }
 
         if (scorersRes?.ok) {
           const data = await scorersRes.json();
           setTopScorers(data.response?.slice(0, 5) || []);
+        } else {
+          // Fallback data for top scorers
+          setTopScorers([
+            {
+              player: { name: 'Neymar Jr', photo: 'https://placehold.co/48x48/png?text=NJ' },
+              statistics: [{ team: { name: 'Brazil NT' }, goals: { total: 15 } }]
+            },
+            {
+              player: { name: 'Artem Dzyuba', photo: 'https://placehold.co/48x48/png?text=AD' },
+              statistics: [{ team: { name: 'Russia NT' }, goals: { total: 12 } }]
+            }
+          ]);
         }
       } catch (error) {
         console.error('Error fetching data:', error);
+        // Set fallback data on error
+        setFixtures([
+          {
+            fixture: { date: '2024-02-15T15:00:00Z' },
+            league: { name: 'BRICS Championship' },
+            teams: {
+              home: { name: 'Brazil', logo: 'https://placehold.co/40x40/png?text=BRA' },
+              away: { name: 'Russia', logo: 'https://placehold.co/40x40/png?text=RUS' }
+            }
+          }
+        ]);
+        setTransfers([]);
+        setTopScorers([]);
       } finally {
         setLoading(false);
       }

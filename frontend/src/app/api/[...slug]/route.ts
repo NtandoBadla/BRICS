@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const app = require('../../../../../backend/src/index.js');
-
+// API proxy to handle backend requests
 export async function GET(request: NextRequest) {
   return handleRequest(request);
 }
@@ -20,24 +19,49 @@ export async function DELETE(request: NextRequest) {
 
 async function handleRequest(request: NextRequest) {
   const url = new URL(request.url);
-  const path = url.pathname;
+  const apiPath = url.pathname.replace('/api/', '');
   
-  const req = {
-    method: request.method,
-    url: path,
-    headers: Object.fromEntries(request.headers.entries()),
-    body: request.method !== 'GET' ? await request.json().catch(() => ({})) : undefined,
-    query: Object.fromEntries(url.searchParams.entries())
-  };
-
-  return new Promise((resolve) => {
-    const res = {
-      status: (code: number) => ({ json: (data: any) => resolve(NextResponse.json(data, { status: code })) }),
-      json: (data: any) => resolve(NextResponse.json(data)),
-      send: (data: any) => resolve(new NextResponse(data)),
-      sendStatus: (code: number) => resolve(new NextResponse(null, { status: code }))
+  // In production, this should point to your deployed backend
+  const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+  const targetUrl = `${backendUrl}/${apiPath}${url.search}`;
+  
+  try {
+    const headers: Record<string, string> = {};
+    
+    // Copy relevant headers
+    request.headers.forEach((value, key) => {
+      if (!key.startsWith('host') && !key.startsWith('x-forwarded')) {
+        headers[key] = value;
+      }
+    });
+    
+    const fetchOptions: RequestInit = {
+      method: request.method,
+      headers,
     };
-
-    app(req, res, () => {});
-  });
+    
+    // Add body for non-GET requests
+    if (request.method !== 'GET' && request.method !== 'HEAD') {
+      const body = await request.text();
+      if (body) {
+        fetchOptions.body = body;
+      }
+    }
+    
+    const response = await fetch(targetUrl, fetchOptions);
+    const data = await response.text();
+    
+    return new NextResponse(data, {
+      status: response.status,
+      headers: {
+        'Content-Type': response.headers.get('Content-Type') || 'application/json',
+      },
+    });
+  } catch (error) {
+    console.error('API proxy error:', error);
+    return NextResponse.json(
+      { error: 'Backend service unavailable' },
+      { status: 503 }
+    );
+  }
 }

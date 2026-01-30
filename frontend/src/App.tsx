@@ -103,7 +103,7 @@ export default function App() {
       )}
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-600 to-blue-800 text-white py-8 md:py-16">
+      <section className="bg-blue-600 text-white py-8 md:py-16">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold mb-4">BRICS Football Association</h1>
           <p className="text-lg md:text-xl text-blue-100">Your gateway to football competitions and matches</p>
