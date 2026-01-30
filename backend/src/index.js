@@ -429,6 +429,10 @@ app.put('/api/users/:id/role', auth, requireRole(['ADMIN']), async (req, res) =>
     const { id } = req.params;
     const { role } = req.body;
 
+    if (!role) {
+      return res.status(400).json({ error: 'Role is required' });
+    }
+
     // Validate role
     const validRoles = ['ADMIN', 'SECRETARIAT', 'REFEREE', 'TEAM_MANAGER', 'FEDERATION_OFFICIAL'];
     if (!validRoles.includes(role)) {
@@ -436,7 +440,7 @@ app.put('/api/users/:id/role', auth, requireRole(['ADMIN']), async (req, res) =>
     }
 
     const updatedUser = await prisma.user.update({
-      where: { id: parseInt(id) },
+      where: { id },
       data: { role },
       select: { id: true, email: true, role: true }
     });
@@ -457,13 +461,17 @@ app.delete('/api/users/:id', auth, requireRole(['ADMIN']), async (req, res) => {
   try {
     const { id } = req.params;
 
+    if (!id) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+
     // Prevent deleting self
-    if (parseInt(id) === req.user.userId) {
+    if (id === req.user.userId) {
       return res.status(400).json({ error: 'Cannot delete your own account' });
     }
 
     await prisma.user.delete({
-      where: { id: parseInt(id) }
+      where: { id }
     });
 
     console.log(`User ${id} deleted by Admin ${req.user.email}`);
@@ -590,6 +598,149 @@ app.get('/api/football/matches', auth, requireRole(['ADMIN', 'TEAM_MANAGER', 'FE
 app.use('/api/referees', refereeRoutes);
 app.use('/api/governance', governanceRoutes);
 app.use('/api/football', footballRoutes);
+
+// Player Management Routes
+app.get('/api/players', auth, async (req, res) => {
+  try {
+    const managerId = req.user.userId;
+    const manager = await prisma.user.findUnique({
+      where: { id: managerId },
+      include: { team: true }
+    });
+
+    if (!manager || !manager.teamId) {
+      return res.status(403).json({ error: 'Manager not associated with a team' });
+    }
+
+    const players = await prisma.athlete.findMany({
+      where: { teamId: manager.teamId },
+      include: { team: true },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    res.json(players);
+  } catch (error) {
+    console.error('Get players error:', error);
+    res.status(500).json({ error: 'Failed to fetch players' });
+  }
+});
+
+app.post('/api/players', auth, async (req, res) => {
+  try {
+    const { firstName, lastName, dateOfBirth, gender, photoUrl } = req.body;
+    const managerId = req.user.userId;
+
+    const manager = await prisma.user.findUnique({
+      where: { id: managerId },
+      include: { team: true }
+    });
+
+    if (!manager || manager.role !== 'TEAM_MANAGER' || !manager.teamId) {
+      return res.status(403).json({ error: 'Only team managers can create players' });
+    }
+
+    const player = await prisma.athlete.create({
+      data: {
+        firstName,
+        lastName,
+        dateOfBirth: new Date(dateOfBirth),
+        gender,
+        teamId: manager.teamId,
+        photoUrl
+      },
+      include: { team: true }
+    });
+
+    res.status(201).json(player);
+  } catch (error) {
+    console.error('Create player error:', error);
+    res.status(500).json({ error: 'Failed to create player' });
+  }
+});
+
+// National Squad Routes
+app.get('/api/national-squads', auth, async (req, res) => {
+  try {
+    const squads = await prisma.nationalSquad.findMany({
+      include: {
+        athletes: {
+          include: { team: true }
+        },
+        creator: true
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(squads);
+  } catch (error) {
+    console.error('Get squads error:', error);
+    res.status(500).json({ error: 'Failed to fetch national squads' });
+  }
+});
+
+app.get('/api/athletes/available', auth, async (req, res) => {
+  try {
+    const athletes = await prisma.athlete.findMany({
+      include: { team: true },
+      orderBy: [{ team: { name: 'asc' } }, { firstName: 'asc' }]
+    });
+    res.json(athletes);
+  } catch (error) {
+    console.error('Get athletes error:', error);
+    res.status(500).json({ error: 'Failed to fetch athletes' });
+  }
+});
+
+// Stats Engine Routes
+app.get('/api/top-scorers', auth, async (req, res) => {
+  try {
+    const { competitionId } = req.query;
+    const goalEvents = await prisma.matchEvent.findMany({
+      where: {
+        type: 'GOAL',
+        ...(competitionId && {
+          match: { competitionId }
+        })
+      },
+      include: {
+        player: {
+          include: { team: true }
+        },
+        match: {
+          include: { competition: true }
+        }
+      }
+    });
+
+    const scorers = goalEvents.reduce((acc, event) => {
+      if (!event.player) return acc;
+      const playerId = event.player.id;
+      if (!acc[playerId]) {
+        acc[playerId] = {
+          player: event.player,
+          goals: 0,
+          matches: new Set()
+        };
+      }
+      acc[playerId].goals++;
+      acc[playerId].matches.add(event.match.id);
+      return acc;
+    }, {});
+
+    const topScorers = Object.values(scorers)
+      .map(scorer => ({
+        ...scorer.player,
+        goals: scorer.goals,
+        matches: scorer.matches.size
+      }))
+      .sort((a, b) => b.goals - a.goals)
+      .slice(0, 20);
+
+    res.json(topScorers);
+  } catch (error) {
+    console.error('Get top scorers error:', error);
+    res.status(500).json({ error: 'Failed to fetch top scorers' });
+  }
+});
 
 // New endpoint for team statistics
 app.get('/api/football/team-statistics', auth, async (req, res) => {

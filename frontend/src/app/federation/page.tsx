@@ -1,10 +1,11 @@
 "use client";
 
 import ProtectedRoute from '@/components/ProtectedRoute';
+import NationalSquadManagement from '@/components/NationalSquadManagement';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building, Users, Trophy } from 'lucide-react';
+import { Building, Users, Trophy, Flag } from 'lucide-react';
 
 export default function FederationPage() {
   const { user, logout } = useAuth();
@@ -28,11 +29,11 @@ export default function FederationPage() {
           <div className="grid md:grid-cols-3 gap-6 mb-8">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Federations</CardTitle>
-                <Building className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-medium">National Squads</CardTitle>
+                <Flag className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">12</div>
+                <div className="text-2xl font-bold">3</div>
               </CardContent>
             </Card>
 
@@ -57,14 +58,7 @@ export default function FederationPage() {
             </Card>
           </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Federation Management</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">Oversee federation operations and tournaments</p>
-            </CardContent>
-          </Card>
+          <NationalSquadManagement />
         </main>
       </div>
     </ProtectedRoute>

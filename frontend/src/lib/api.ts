@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const API_URL = '';
+const API_URL = process.env.NODE_ENV === 'production' ? '' : '';
 
 // Error types for better error handling
 export interface ApiError {

@@ -2,9 +2,12 @@
 
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import NationalSquadManagement from '@/components/NationalSquadManagement';
+import StatsEngine from '@/components/StatsEngine';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Users, Settings, Shield, Trophy, Calendar, FileText, UserPlus, Building, Eye } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import Footer from '@/components/layout/Footer';
@@ -52,32 +55,11 @@ export default function AdminPage() {
   }, []);
 
   const handleAddUser = () => {
-    // Navigate to user creation form
     router.push('/signup');
-  };
-
-  const handleCreateCompetition = () => {
-    alert('Competition creation form will be implemented');
-  };
-
-  const handleScheduleMatch = () => {
-    alert('Match scheduling form will be implemented');
   };
 
   const handleManageUsers = () => {
     router.push('/admin/users');
-  };
-
-  const handleViewRoles = () => {
-    alert('Role management interface will be implemented');
-  };
-
-  const handleViewCompetitions = () => {
-    alert('Competition management interface will be implemented');
-  };
-
-  const handleScheduleMatches = () => {
-    alert('Match scheduling interface will be implemented');
   };
 
   const loadFootballData = async () => {
@@ -176,13 +158,13 @@ export default function AdminPage() {
                   <UserPlus className="h-6 w-6" />
                   <span>Add New User</span>
                 </Button>
-                <Button onClick={handleCreateCompetition} className="h-20 flex flex-col gap-2" variant="outline">
+                <Button onClick={() => router.push('/competitions')} className="h-20 flex flex-col gap-2" variant="outline">
                   <Trophy className="h-6 w-6" />
-                  <span>Create Competition</span>
+                  <span>View Competitions</span>
                 </Button>
-                <Button onClick={handleScheduleMatch} className="h-20 flex flex-col gap-2" variant="outline">
+                <Button onClick={() => router.push('/matches')} className="h-20 flex flex-col gap-2" variant="outline">
                   <Calendar className="h-6 w-6" />
-                  <span>Schedule Match</span>
+                  <span>View Matches</span>
                 </Button>
                 <Button onClick={loadFootballData} className="h-20 flex flex-col gap-2" variant="outline" disabled={footballData.loading}>
                   <Eye className="h-6 w-6" />
@@ -240,81 +222,101 @@ export default function AdminPage() {
           )}
 
           {/* Management Sections */}
-          <div className="grid md:grid-cols-2 gap-8 mb-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>User Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
-                    <div>
-                      <p className="font-medium">System Users</p>
-                      <p className="text-sm text-gray-600">Manage all platform users</p>
+          <Tabs defaultValue="overview" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="squads">National Squads</TabsTrigger>
+              <TabsTrigger value="stats">Stats Engine</TabsTrigger>
+              <TabsTrigger value="management">Management</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="overview" className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-8">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>User Management</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                        <div>
+                          <p className="font-medium">System Users</p>
+                          <p className="text-sm text-gray-600">Manage all platform users</p>
+                        </div>
+                        <Button onClick={handleManageUsers} size="sm">Manage</Button>
+                      </div>
+                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                        <div>
+                          <p className="font-medium">Role Assignments</p>
+                          <p className="text-sm text-gray-600">Update user permissions</p>
+                        </div>
+                        <Button onClick={() => router.push('/admin/users')} size="sm" variant="outline">View</Button>
+                      </div>
                     </div>
-                    <Button onClick={handleManageUsers} size="sm">Manage</Button>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
-                    <div>
-                      <p className="font-medium">Role Assignments</p>
-                      <p className="text-sm text-gray-600">Update user permissions</p>
-                    </div>
-                    <Button onClick={handleViewRoles} size="sm" variant="outline">View</Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Competition Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
-                    <div>
-                      <p className="font-medium">Active Competitions</p>
-                      <p className="text-sm text-gray-600">Monitor ongoing tournaments</p>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Competition Management</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                        <div>
+                          <p className="font-medium">Active Competitions</p>
+                          <p className="text-sm text-gray-600">Monitor ongoing tournaments</p>
+                        </div>
+                        <Button onClick={() => router.push('/competitions')} size="sm">View All</Button>
+                      </div>
+                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                        <div>
+                          <p className="font-medium">Match Scheduling</p>
+                          <p className="text-sm text-gray-600">Create and manage fixtures</p>
+                        </div>
+                        <Button onClick={() => router.push('/matches')} size="sm" variant="outline">Schedule</Button>
+                      </div>
                     </div>
-                    <Button onClick={handleViewCompetitions} size="sm">View All</Button>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
-                    <div>
-                      <p className="font-medium">Match Scheduling</p>
-                      <p className="text-sm text-gray-600">Create and manage fixtures</p>
-                    </div>
-                    <Button onClick={handleScheduleMatches} size="sm" variant="outline">Schedule</Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* System Overview */}
-          <Card>
-            <CardHeader>
-              <CardTitle>System Overview</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid md:grid-cols-3 gap-6">
-                <div className="text-center">
-                  <Building className="h-12 w-12 mx-auto text-blue-600 mb-2" />
-                  <h3 className="font-semibold mb-1">Organizations</h3>
-                  <p className="text-sm text-gray-600">Manage teams and federations</p>
-                </div>
-                <div className="text-center">
-                  <FileText className="h-12 w-12 mx-auto text-green-600 mb-2" />
-                  <h3 className="font-semibold mb-1">Reports</h3>
-                  <p className="text-sm text-gray-600">Generate system reports</p>
-                </div>
-                <div className="text-center">
-                  <Settings className="h-12 w-12 mx-auto text-purple-600 mb-2" />
-                  <h3 className="font-semibold mb-1">Settings</h3>
-                  <p className="text-sm text-gray-600">Configure system preferences</p>
-                </div>
+                  </CardContent>
+                </Card>
               </div>
-            </CardContent>
-          </Card>
+            </TabsContent>
+            
+            <TabsContent value="squads">
+              <NationalSquadManagement />
+            </TabsContent>
+            
+            <TabsContent value="stats">
+              <StatsEngine />
+            </TabsContent>
+            
+            <TabsContent value="management">
+              <Card>
+                <CardHeader>
+                  <CardTitle>System Overview</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-3 gap-6">
+                    <div className="text-center">
+                      <Building className="h-12 w-12 mx-auto text-blue-600 mb-2" />
+                      <h3 className="font-semibold mb-1">Organizations</h3>
+                      <p className="text-sm text-gray-600">Manage teams and federations</p>
+                    </div>
+                    <div className="text-center">
+                      <FileText className="h-12 w-12 mx-auto text-green-600 mb-2" />
+                      <h3 className="font-semibold mb-1">Reports</h3>
+                      <p className="text-sm text-gray-600">Generate system reports</p>
+                    </div>
+                    <div className="text-center">
+                      <Settings className="h-12 w-12 mx-auto text-purple-600 mb-2" />
+                      <h3 className="font-semibold mb-1">Settings</h3>
+                      <p className="text-sm text-gray-600">Configure system preferences</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </main>
 
         <Footer />

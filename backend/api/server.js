@@ -1,13 +1,16 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import authRoutes from "../backend/src/routes/authRoutes.js";
-import userRoutes from "../backend/src/routes/userRoutes.js";
-import footballRoutes from "../backend/src/routes/footballRoutes.js";
-import refereeRoutes from "../backend/src/routes/refereeRoutes.js";
-import competitionRoutes from "../backend/src/routes/competitionRoutes.js";
-import matchRoutes from "../backend/src/routes/matchRoutes.js";
-import testRoutes from "../backend/src/routes/testRoutes.js";
+import authRoutes from "../src/routes/authRoutes.js";
+import userRoutes from "../src/routes/userRoutes.js";
+import footballRoutes from "../src/routes/footballRoutes.js";
+import refereeRoutes from "../src/routes/refereeRoutes.js";
+import competitionRoutes from "../src/routes/competitionRoutes.js";
+import matchRoutes from "../src/routes/matchRoutes.js";
+import testRoutes from "../src/routes/testRoutes.js";
+import playerRoutes from "../src/routes/playerRoutes.js";
+import nationalSquadRoutes from "../src/routes/nationalSquadRoutes.js";
+import statsRoutes from "../src/routes/statsRoutes.js";
 
 dotenv.config();
 
@@ -24,6 +27,12 @@ app.use(cors({
 }));
 
 app.use(express.json());
+
+// Request Logger - Helps debug 404s by showing what URL is actually requested
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
 
 // Health check
 app.get("/", (req, res) => {
@@ -43,6 +52,9 @@ app.get("/hello", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api", userRoutes);
 app.use("/api", testRoutes);
+app.use("/api", playerRoutes);
+app.use("/api", nationalSquadRoutes);
+app.use("/api", statsRoutes);
 
 // Feature routes
 app.use("/api/football", footballRoutes);

@@ -50,6 +50,7 @@ model User {
   documents         Document[]
   approvedDocuments Document[] @relation("DocumentApprover")
   auditLogs         AuditLog[]
+  nationalSquads    NationalSquad[]
   
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -88,6 +89,7 @@ model Athlete {
   // Relations
   matchEvents        MatchEvent[]
   disciplinaryReports DisciplinaryReport[]
+  nationalSquads     NationalSquad[]
   
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -246,6 +248,8 @@ model Standing {
   goalDiff      Int         @default(0)
   points        Int         @default(0)
   updatedAt     DateTime    @updatedAt
+  
+  @@unique([competitionId, teamId])
 }
 
 enum CompetitionFormat {
@@ -494,4 +498,16 @@ enum DocumentStatus {
   APPROVED
   REJECTED
   ARCHIVED
+}
+
+// National Squad Management
+model NationalSquad {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  createdBy   String
+  creator     User      @relation(fields: [createdBy], references: [id])
+  athletes    Athlete[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
