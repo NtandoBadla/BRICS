@@ -62,6 +62,19 @@ app.get('/api/football/topscorers', (req, res) => {
   });
 });
 
+app.post('/api/auth/login', (req, res) => {
+  res.json({
+    token: 'mock-fallback-token',
+    user: {
+      id: 1,
+      email: req.body.email,
+      role: 'ADMIN',
+      firstName: 'Admin',
+      lastName: 'User'
+    }
+  });
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });

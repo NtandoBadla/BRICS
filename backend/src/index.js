@@ -64,20 +64,6 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY
 );
 
-// Check database connection on startup
-let dbConnected = false;
-prisma.$connect()
-  .then(() => {
-    console.log('✅ Database connected successfully');
-    dbConnected = true;
-  })
-  .catch((e) => {
-    console.error('❌ Database connection failed:', e.message);
-    console.log('DEBUG: DATABASE_URL is', process.env.DATABASE_URL ? 'DEFINED' : 'UNDEFINED');
-    console.error('⚠️ Server will continue without database functionality');
-    dbConnected = false;
-  });
-
 // Health check
 app.get('/', async (req, res) => {
   let dbStatus = 'unknown';
@@ -173,7 +159,7 @@ app.post('/api/auth/register', async (req, res) => {
 });
 
 // Support both /api/auth/login and /api/login for convenience
-app.post(['/api/auth/login', '/api/login'], async (req, res) => {
+app.post(['/api/auth/login', '/api/login', '/api/auth/signin', '/api/signin'], async (req, res) => {
   console.log('Login attempt:', req.body.email);
   try {
     const { email, password } = req.body;
@@ -837,12 +823,40 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error', details: err.message });
 });
 
+// --- Server Startup ---
+async function startServer() {
+  try {
+    // Attempt to connect to the database before starting the server
+    await prisma.$connect();
+    console.log('✅ Database connected successfully');
+
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+      console.log(`🚀 BIFA Backend running on http://localhost:${PORT}`);
+    });
+
+  } catch (error) {
+    console.error('❌ Database connection failed:', error.message);
+    console.log('DEBUG: DATABASE_URL is', process.env.DATABASE_URL ? 'DEFINED' : 'UNDEFINED');
+    
+    if (error.message.includes('6543')) {
+      console.error('💡 HINT: The database pooler (port 6543) is unreachable. This can happen if the database is paused on Supabase. Try waking it up from your Supabase dashboard, or switch your DATABASE_URL to use the direct connection string (port 5432).');
+    }
+    
+    console.error('⚠️ Server did not start due to database connection failure.');
+    
+    console.log('🔄 SWITCHING TO FALLBACK MODE (No Database)...');
+    try {
+      require('../server-fallback');
+    } catch (fallbackError) {
+      console.error('❌ Failed to start fallback server:', fallbackError);
+      process.exit(1);
+    }
+  }
+}
+
 if (require.main === module) {
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => {
-    console.log(`🚀 BIFA Backend running on http://localhost:${PORT}`);
-    console.log('✅ Features: CMS, Auth (simplified for testing)');
-  });
+  startServer();
 }
 
 module.exports = app;
