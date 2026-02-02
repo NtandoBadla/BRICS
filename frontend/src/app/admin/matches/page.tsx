@@ -212,60 +212,87 @@ export default function MatchResultManagementPage() {
 
           {/* Edit Match Dialog */}
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogContent>
+            <DialogContent className="max-w-md">
               <DialogHeader>
-                <DialogTitle>Update Match Result</DialogTitle>
+                <DialogTitle className="text-lg font-semibold">Update Match Result</DialogTitle>
               </DialogHeader>
               {editingMatch && (
-                <form onSubmit={handleUpdateMatch} className="space-y-4">
-                  <div>
-                    <p className="font-medium mb-2">
-                      {editingMatch.homeTeam?.name || 'TBD'} vs {editingMatch.awayTeam?.name || 'TBD'}
-                    </p>
+                <form onSubmit={handleUpdateMatch} className="space-y-6">
+                  <div className="text-center p-4 bg-gray-50 rounded-lg">
+                    <h3 className="text-lg font-bold text-gray-900">
+                      {editingMatch.homeTeam?.name || 'Home Team'}
+                    </h3>
+                    <p className="text-sm text-gray-500 mb-2">vs</p>
+                    <h3 className="text-lg font-bold text-gray-900">
+                      {editingMatch.awayTeam?.name || 'Away Team'}
+                    </h3>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="homeScore">{editingMatch.homeTeam?.name || 'Home'} Score</Label>
-                      <Input
-                        id="homeScore"
-                        type="number"
-                        min="0"
-                        value={formData.homeScore}
-                        onChange={(e) => setFormData({ ...formData, homeScore: e.target.value })}
-                      />
+                  <div className="space-y-4">
+                    <div className="text-center">
+                      <Label className="text-base font-medium text-gray-700">Final Score</Label>
                     </div>
-                    <div>
-                      <Label htmlFor="awayScore">{editingMatch.awayTeam?.name || 'Away'} Score</Label>
-                      <Input
-                        id="awayScore"
-                        type="number"
-                        min="0"
-                        value={formData.awayScore}
-                        onChange={(e) => setFormData({ ...formData, awayScore: e.target.value })}
-                      />
+                    
+                    <div className="flex items-center justify-center gap-4">
+                      <div className="text-center">
+                        <Label htmlFor="homeScore" className="block text-sm font-medium mb-2">
+                          {editingMatch.homeTeam?.name || 'Home'}
+                        </Label>
+                        <Input
+                          id="homeScore"
+                          type="number"
+                          min="0"
+                          max="20"
+                          placeholder="0"
+                          className="w-16 h-12 text-center text-xl font-bold"
+                          value={formData.homeScore}
+                          onChange={(e) => setFormData({ ...formData, homeScore: e.target.value })}
+                        />
+                      </div>
+                      
+                      <div className="text-2xl font-bold text-gray-400 mt-6">-</div>
+                      
+                      <div className="text-center">
+                        <Label htmlFor="awayScore" className="block text-sm font-medium mb-2">
+                          {editingMatch.awayTeam?.name || 'Away'}
+                        </Label>
+                        <Input
+                          id="awayScore"
+                          type="number"
+                          min="0"
+                          max="20"
+                          placeholder="0"
+                          className="w-16 h-12 text-center text-xl font-bold"
+                          value={formData.awayScore}
+                          onChange={(e) => setFormData({ ...formData, awayScore: e.target.value })}
+                        />
+                      </div>
                     </div>
                   </div>
 
                   <div>
-                    <Label htmlFor="status">Match Status</Label>
+                    <Label htmlFor="status" className="block text-sm font-medium mb-2">Match Status</Label>
                     <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
-                      <SelectTrigger>
-                        <SelectValue />
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select status" />
                       </SelectTrigger>
                       <SelectContent>
                         {MATCH_STATUSES.map(status => (
-                          <SelectItem key={status} value={status}>{status}</SelectItem>
+                          <SelectItem key={status} value={status}>
+                            <span className="capitalize">{status.toLowerCase().replace('_', ' ')}</span>
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
 
-                  <div className="flex justify-end gap-2">
+                  <div className="flex justify-end gap-3 pt-4">
                     <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                       Cancel
                     </Button>
-                    <Button type="submit">Update Match</Button>
+                    <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+                      Update Match
+                    </Button>
                   </div>
                 </form>
               )}

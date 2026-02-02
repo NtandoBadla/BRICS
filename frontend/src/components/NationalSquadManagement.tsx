@@ -172,79 +172,114 @@ export default function NationalSquadManagement() {
               Create Squad
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>
-                {editingSquad ? 'Edit Squad' : 'Create National Squad'}
+              <DialogTitle className="text-xl font-semibold">
+                {editingSquad ? 'Edit National Squad' : 'Create New National Squad'}
               </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="name">Squad Name</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  />
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="font-medium text-gray-900 mb-4">Squad Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="name" className="text-sm font-medium text-gray-700">Squad Name *</Label>
+                    <Input
+                      id="name"
+                      placeholder="e.g., BRICS U-23 National Team"
+                      className="mt-1"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="description" className="text-sm font-medium text-gray-700">Description</Label>
+                    <Textarea
+                      id="description"
+                      placeholder="Brief description of the squad..."
+                      className="mt-1"
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    />
+                  </div>
                 </div>
               </div>
 
               <div>
-                <Label>Select Athletes</Label>
-                <div className="mt-2">
-                  <div className="relative mb-4">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input
-                      placeholder="Search athletes..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-medium text-gray-900">Select Athletes</h3>
+                  <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                    {selectedAthletes.length} selected
+                  </Badge>
+                </div>
+                
+                <div className="border rounded-lg">
+                  <div className="p-3 border-b bg-gray-50">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        placeholder="Search by athlete name or team..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10 bg-white"
+                      />
+                    </div>
                   </div>
-                  <div className="max-h-60 overflow-y-auto border rounded p-4 space-y-3">
-                    {filteredAthletes.map((athlete) => (
-                      <div key={athlete.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
-                        <div className="flex items-center space-x-3">
-                          <Checkbox
-                            id={athlete.id}
-                            checked={selectedAthletes.includes(athlete.id)}
-                            onCheckedChange={() => toggleAthlete(athlete.id)}
-                          />
-                          <div>
-                            <p className="font-medium">{athlete.firstName} {athlete.lastName}</p>
-                            <p className="text-sm text-gray-600">{athlete.team.name}</p>
-                            {athlete.position && (
-                              <Badge variant="outline" className="text-xs">{athlete.position}</Badge>
-                            )}
+                  
+                  <div className="max-h-80 overflow-y-auto">
+                    {filteredAthletes.length > 0 ? (
+                      <div className="divide-y">
+                        {filteredAthletes.map((athlete) => (
+                          <div key={athlete.id} className="p-4 hover:bg-gray-50 transition-colors">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <Checkbox
+                                  id={athlete.id}
+                                  checked={selectedAthletes.includes(athlete.id)}
+                                  onCheckedChange={() => toggleAthlete(athlete.id)}
+                                  className="h-5 w-5"
+                                />
+                                <div className="flex-1">
+                                  <p className="font-medium text-gray-900">
+                                    {athlete.firstName} {athlete.lastName}
+                                  </p>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <Badge variant="outline" className="text-xs">
+                                      {athlete.team.name}
+                                    </Badge>
+                                    {athlete.position && (
+                                      <Badge variant="secondary" className="text-xs">
+                                        {athlete.position}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              {athlete.age && (
+                                <span className="text-sm text-gray-500 font-medium">
+                                  Age: {athlete.age}
+                                </span>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                        {athlete.age && (
-                          <span className="text-sm text-gray-500">Age: {athlete.age}</span>
-                        )}
+                        ))}
                       </div>
-                    ))}
+                    ) : (
+                      <div className="p-8 text-center text-gray-500">
+                        <Users className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                        <p>No athletes found matching your search</p>
+                      </div>
+                    )}
                   </div>
-                  <p className="text-sm text-gray-500 mt-2">
-                    {selectedAthletes.length} athletes selected
-                  </p>
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-end gap-3 pt-4 border-t">
                 <Button type="button" variant="outline" onClick={resetForm}>
                   Cancel
                 </Button>
-                <Button type="submit">
+                <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
                   {editingSquad ? 'Update Squad' : 'Create Squad'}
                 </Button>
               </div>
@@ -263,82 +298,151 @@ export default function NationalSquadManagement() {
             </TabsList>
             
             <TabsContent value="squads" className="space-y-4">
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">National Squads</h3>
+                <p className="text-sm text-gray-600">Manage your national team squads and athlete selections</p>
+              </div>
+              
               {squads.map((squad) => (
-                <Card key={squad.id}>
+                <Card key={squad.id} className="hover:shadow-md transition-shadow">
                   <CardHeader>
                     <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle className="flex items-center gap-2">
-                          <Users className="h-5 w-5" />
-                          {squad.name}
-                        </CardTitle>
-                        <p className="text-sm text-gray-500 mt-1">
-                          Created: {new Date(squad.createdAt).toLocaleDateString()}
-                        </p>
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-100 rounded-lg">
+                          <Users className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-lg">{squad.name}</CardTitle>
+                          <p className="text-sm text-gray-500 mt-1">
+                            Created: {new Date(squad.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
                       </div>
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm" onClick={() => handleEditSquad(squad)}>
-                          <Edit className="h-4 w-4" />
+                          <Edit className="h-4 w-4 mr-1" />
+                          Edit
                         </Button>
                         <Button variant="destructive" size="sm" onClick={() => handleDeleteSquad(squad.id)}>
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Delete
                         </Button>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-sm text-gray-600 mb-4">{squad.description}</p>
-                    <div className="space-y-2">
-                      <p className="font-medium text-sm">Athletes ({squad.athletes.length}):</p>
-                      <div className="flex flex-wrap gap-2">
-                        {squad.athletes.map((athlete) => (
-                          <Badge key={athlete.id} variant="secondary" className="flex items-center gap-1">
-                            <UserPlus className="h-3 w-3" />
-                            {athlete.firstName} {athlete.lastName}
-                            <span className="text-xs opacity-75">({athlete.team.name})</span>
-                          </Badge>
-                        ))}
+                    {squad.description && (
+                      <p className="text-sm text-gray-600 mb-4 p-3 bg-gray-50 rounded-lg">
+                        {squad.description}
+                      </p>
+                    )}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium text-gray-900">Squad Members</h4>
+                        <Badge variant="secondary">{squad.athletes.length} athletes</Badge>
                       </div>
+                      {squad.athletes.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                          {squad.athletes.map((athlete) => (
+                            <div key={athlete.id} className="flex items-center gap-2 p-2 bg-white border rounded-lg">
+                              <UserPlus className="h-4 w-4 text-blue-500" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-gray-900 truncate">
+                                  {athlete.firstName} {athlete.lastName}
+                                </p>
+                                <p className="text-xs text-gray-500 truncate">{athlete.team.name}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-6 text-gray-500">
+                          <Users className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                          <p className="text-sm">No athletes assigned to this squad</p>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+              ))
+              }
               {squads.length === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  No squads created yet. Create your first national squad!
-                </div>
+                <Card>
+                  <CardContent className="text-center py-12">
+                    <Users className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No squads created yet</h3>
+                    <p className="text-gray-500 mb-4">Create your first national squad to get started</p>
+                    <Button onClick={() => setIsDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create Your First Squad
+                    </Button>
+                  </CardContent>
+                </Card>
               )}
             </TabsContent>
             
             <TabsContent value="athletes" className="space-y-4">
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Available Athletes</h3>
+                <p className="text-sm text-gray-600">Browse and search through all available athletes</p>
+              </div>
+              
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Search athletes..."
+                  placeholder="Search by athlete name, team, or position..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 h-12"
                 />
               </div>
+              
               <div className="grid gap-3">
-                {filteredAthletes.map((athlete) => (
-                  <Card key={athlete.id}>
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium">{athlete.firstName} {athlete.lastName}</p>
-                          <p className="text-sm text-gray-600">{athlete.team.name}</p>
-                          {athlete.position && (
-                            <Badge variant="outline" className="text-xs mt-1">{athlete.position}</Badge>
-                          )}
+                {filteredAthletes.length > 0 ? (
+                  filteredAthletes.map((athlete) => (
+                    <Card key={athlete.id} className="hover:shadow-sm transition-shadow">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-green-100 rounded-full">
+                              <UserPlus className="h-4 w-4 text-green-600" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-900">
+                                {athlete.firstName} {athlete.lastName}
+                              </p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Badge variant="outline" className="text-xs">
+                                  {athlete.team.name}
+                                </Badge>
+                                {athlete.position && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    {athlete.position}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            {athlete.age && (
+                              <span className="text-sm text-gray-500 font-medium">
+                                Age: {athlete.age}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                        {athlete.age && (
-                          <span className="text-sm text-gray-500">Age: {athlete.age}</span>
-                        )}
-                      </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : (
+                  <Card>
+                    <CardContent className="text-center py-12">
+                      <Search className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No athletes found</h3>
+                      <p className="text-gray-500">Try adjusting your search terms</p>
                     </CardContent>
                   </Card>
-                ))}
+                )}
               </div>
             </TabsContent>
           </Tabs>

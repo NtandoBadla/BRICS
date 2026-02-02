@@ -65,10 +65,26 @@ export default function LoginPage() {
       login(token, responseData.user);
       
       // Redirect based on user role
-      if (responseData.user?.role === 'ADMIN') {
-        router.push('/admin');
-      } else {
-        router.push('/');
+      const userRole = responseData.user?.role;
+      switch (userRole) {
+        case 'ADMIN':
+          router.push('/admin');
+          break;
+        case 'SECRETARIAT':
+          router.push('/secretariat');
+          break;
+        case 'REFEREE':
+          router.push('/referee');
+          break;
+        case 'TEAM_MANAGER':
+          router.push('/team-manager');
+          break;
+        case 'FEDERATION_OFFICIAL':
+          router.push('/federation');
+          break;
+        default:
+          router.push('/');
+          break;
       }
     } catch (err) {
       setErrors({ 
