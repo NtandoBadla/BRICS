@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const API_URL = process.env.NODE_ENV === 'production' ? 'https://brics-bkwb.vercel.app' : '';
+const API_URL = 'https://brics-bkwb.vercel.app';
 
 // Error types for better error handling
 export interface ApiError {
@@ -41,6 +41,7 @@ async function apiRequest<T>(
   timeout: number = REQUEST_TIMEOUT
 ): Promise<T> {
   const url = `${API_URL}${endpoint}`;
+  console.log('API Request URL:', url); // Debug log
   const { controller, timeoutId } = createTimeoutController(timeout);
 
   try {
@@ -210,6 +211,11 @@ class ApiService {
   // Health check endpoint
   async healthCheck() {
     return apiRequest('/', { method: 'GET' }, 5000); // 5s timeout for health check
+  }
+
+  // Test backend connection
+  async testConnection() {
+    return apiRequest('/api/test', { method: 'GET' }, 5000);
   }
 }
 
