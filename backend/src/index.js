@@ -46,7 +46,7 @@ const corsOptions = {
     }
 
     // Add your production frontend domain here
-    if (origin === 'https://your-frontend-domain.vercel.app') {
+    if (origin === 'https://brics-bkwb.vercel.app') {
       return callback(null, true);
     }
 
