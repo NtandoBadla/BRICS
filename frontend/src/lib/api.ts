@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const API_URL = process.env.NODE_ENV === 'production' ? '' : '';
+const API_URL = process.env.NODE_ENV === 'production' ? 'https://your-backend-url.vercel.app' : '';
 
 // Error types for better error handling
 export interface ApiError {

@@ -45,6 +45,11 @@ const corsOptions = {
       return callback(null, true);
     }
 
+    // Add your production frontend domain here
+    if (origin === 'https://your-frontend-domain.vercel.app') {
+      return callback(null, true);
+    }
+
     console.log('Blocked by CORS:', origin);
     callback(new Error('Not allowed by CORS'));
   },
