@@ -1,7 +1,7 @@
-import jwt from 'jsonwebtoken';
+const jwt = require('jsonwebtoken');
 
 // Middleware to verify JWT token
-export const auth = (req, res, next) => {
+const auth = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
@@ -15,10 +15,10 @@ export const auth = (req, res, next) => {
 };
 
 // Alias for consistency
-export const authenticateToken = auth;
+const authenticateToken = auth;
 
 // Middleware to authorize based on user roles
-export const requireRole = (allowedRoles) => {
+const requireRole = (allowedRoles) => {
   return (req, res, next) => {
     if (!req.user || !req.user.role) {
       return res.status(403).json({ error: 'Permission denied. User role not found.' });
@@ -31,3 +31,5 @@ export const requireRole = (allowedRoles) => {
     }
   };
 };
+
+module.exports = { auth, authenticateToken, requireRole };

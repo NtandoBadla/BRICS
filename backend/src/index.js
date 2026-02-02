@@ -159,7 +159,7 @@ app.post('/api/auth/register', async (req, res) => {
 });
 
 // Support both /api/auth/login and /api/login for convenience
-app.post(['/api/auth/login', '/api/login', '/api/auth/signin', '/api/signin'], async (req, res) => {
+app.post(['/api/auth/login', '/api/login'], async (req, res) => {
   console.log('Login attempt:', req.body.email);
   try {
     const { email, password } = req.body;
@@ -844,14 +844,7 @@ async function startServer() {
     }
     
     console.error('⚠️ Server did not start due to database connection failure.');
-    
-    console.log('🔄 SWITCHING TO FALLBACK MODE (No Database)...');
-    try {
-      require('../server-fallback');
-    } catch (fallbackError) {
-      console.error('❌ Failed to start fallback server:', fallbackError);
-      process.exit(1);
-    }
+    process.exit(1);
   }
 }
 
