@@ -173,6 +173,11 @@ app.post(['/api/auth/login', '/api/login'], async (req, res) => {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
+    if (!process.env.JWT_SECRET) {
+      console.error('JWT_SECRET environment variable is missing');
+      return res.status(500).json({ error: 'Server configuration error' });
+    }
+
     const normalizedEmail = email.toLowerCase();
     
     // Fallback admin login if database user doesn't exist
@@ -831,9 +836,14 @@ app.use((err, req, res, next) => {
 // --- Server Startup ---
 async function startServer() {
   try {
-    // Attempt to connect to the database before starting the server
-    await prisma.$connect();
-    console.log('✅ Database connected successfully');
+    // Try to connect to the database but don't fail if it's unavailable
+    try {
+      await prisma.$connect();
+      console.log('✅ Database connected successfully');
+    } catch (dbError) {
+      console.warn('⚠️ Database connection failed, but server will start anyway:', dbError.message);
+      console.log('💡 HINT: Database will be available when needed. Some features may be limited.');
+    }
 
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => {
@@ -841,14 +851,7 @@ async function startServer() {
     });
 
   } catch (error) {
-    console.error('❌ Database connection failed:', error.message);
-    console.log('DEBUG: DATABASE_URL is', process.env.DATABASE_URL ? 'DEFINED' : 'UNDEFINED');
-    
-    if (error.message.includes('6543')) {
-      console.error('💡 HINT: The database pooler (port 6543) is unreachable. This can happen if the database is paused on Supabase. Try waking it up from your Supabase dashboard, or switch your DATABASE_URL to use the direct connection string (port 5432).');
-    }
-    
-    console.error('⚠️ Server did not start due to database connection failure.');
+    console.error('❌ Server startup failed:', error.message);
     process.exit(1);
   }
 }

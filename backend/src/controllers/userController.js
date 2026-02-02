@@ -45,6 +45,37 @@ export const createUser = async (req, res) => {
   }
 };
 
+export const updateUserRole = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { role } = req.body;
+    
+    const user = await prisma.user.update({
+      where: { id: parseInt(id) },
+      data: { role },
+      select: { id: true, email: true, firstName: true, lastName: true, role: true, createdAt: true }
+    });
+    
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    await prisma.user.delete({
+      where: { id: parseInt(id) }
+    });
+    
+    res.json({ message: 'User deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 export const createTestUser = async (req, res) => {
   try {
     const hashedPassword = await bcrypt.hash("password123", 10);

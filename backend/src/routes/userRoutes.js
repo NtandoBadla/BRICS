@@ -1,5 +1,5 @@
 import express from "express";
-import { getUsers, createUser, createTestUser, getProfile } from "../controllers/userController.js";
+import { getUsers, createUser, createTestUser, getProfile, updateUserRole, deleteUser } from "../controllers/userController.js";
 import { authenticateToken, requireRole } from "../middleware/auth.js";
 
 const router = express.Router();
@@ -7,6 +7,8 @@ const router = express.Router();
 // Protected routes with RBAC
 router.get("/users", authenticateToken, requireRole("ADMIN", "SECRETARIAT"), getUsers);
 router.post("/users", authenticateToken, requireRole("ADMIN"), createUser);
+router.put("/users/:id/role", authenticateToken, requireRole("ADMIN"), updateUserRole);
+router.delete("/users/:id", authenticateToken, requireRole("ADMIN"), deleteUser);
 router.get("/profile", authenticateToken, getProfile);
 
 // Admin-only routes
