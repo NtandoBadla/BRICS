@@ -25,7 +25,7 @@ const ERROR_MESSAGES: Record<number, string> = {
 };
 
 // Request timeout configuration
-const REQUEST_TIMEOUT = 10000; // 10 seconds
+const REQUEST_TIMEOUT = 30000; // 30 seconds for Vercel
 
 // Create AbortController for request timeout
 function createTimeoutController(timeout: number = REQUEST_TIMEOUT) {
