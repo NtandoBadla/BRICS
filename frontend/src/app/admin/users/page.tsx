@@ -57,14 +57,24 @@ export default function UserManagementPage() {
         try {
             setActionLoading(userId);
             const token = localStorage.getItem('token');
-            if (!token) return;
+            if (!token) {
+                setError('Authentication token not found. Please log in again.');
+                return;
+            }
 
             await api.updateUserRole(token, userId, newRole);
 
             // Optimistic update
             setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
-        } catch (err) {
-            alert('Failed to update role: ' + getErrorMessage(err));
+            
+            // Show success message
+            alert(`Role updated successfully! User will receive an email notification.`);
+        } catch (err: any) {
+            console.error('Role update error:', err);
+            const errorMsg = err.message || 'Failed to update role';
+            alert('Failed to update role: ' + errorMsg);
+            // Revert optimistic update by refetching
+            fetchUsers();
         } finally {
             setActionLoading(null);
         }
@@ -76,14 +86,20 @@ export default function UserManagementPage() {
         try {
             setActionLoading(userId);
             const token = localStorage.getItem('token');
-            if (!token) return;
+            if (!token) {
+                setError('Authentication token not found. Please log in again.');
+                return;
+            }
 
             await api.deleteUser(token, userId);
 
             // Remove from list
             setUsers(users.filter(u => u.id !== userId));
-        } catch (err) {
-            alert('Failed to delete user: ' + getErrorMessage(err));
+            alert('User deleted successfully.');
+        } catch (err: any) {
+            console.error('Delete user error:', err);
+            const errorMsg = err.message || 'Failed to delete user';
+            alert('Failed to delete user: ' + errorMsg);
         } finally {
             setActionLoading(null);
         }

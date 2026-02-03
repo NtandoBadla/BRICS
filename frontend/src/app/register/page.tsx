@@ -29,21 +29,11 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      // Mock registration - replace with actual API call
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        login(data.token, data.user);
-      } else {
-        setError('Registration failed');
-      }
-    } catch (err) {
-      setError('Registration failed');
+      const data = await api.register(formData);
+      login(data.token, data.user);
+      router.push(data.redirectUrl || '/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Registration failed');
     } finally {
       setLoading(false);
     }

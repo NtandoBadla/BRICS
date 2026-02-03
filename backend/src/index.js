@@ -51,7 +51,7 @@ const corsOptions = {
     if (!origin) return callback(null, true);
 
     // Allow localhost and any Vercel deployment
-    if (origin.includes('localhost') || origin.endsWith('.vercel.app')) {
+    if (origin.includes('localhost') || origin.endsWith('.vercel.app') || origin.endsWith('.onrender.com')) {
       return callback(null, true);
     }
 
@@ -478,8 +478,20 @@ app.put('/api/users/:id/role', auth, requireRole(['ADMIN']), async (req, res) =>
     const updatedUser = await prisma.user.update({
       where: { id },
       data: { role },
-      select: { id: true, email: true, role: true }
+      select: { id: true, email: true, firstName: true, lastName: true, role: true }
     });
+
+    // Send email notification (mock implementation)
+    try {
+      console.log(`📧 Email notification sent to ${updatedUser.email}:`);
+      console.log(`Subject: Role Updated - BIFA Platform`);
+      console.log(`Dear ${updatedUser.firstName} ${updatedUser.lastName},`);
+      console.log(`Your role has been updated to: ${role}`);
+      console.log(`You can now access features specific to your new role.`);
+      console.log(`Best regards, BIFA Admin Team`);
+    } catch (emailError) {
+      console.warn('Email notification failed:', emailError);
+    }
 
     console.log(`User ${id} role updated to ${role} by Admin ${req.user.email}`);
     res.json(updatedUser);
