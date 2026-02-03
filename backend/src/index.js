@@ -56,7 +56,7 @@ const corsOptions = {
     }
 
     // Add your production frontend domain here
-    if (origin === 'https://brics-bkwb.vercel.app') {
+    if (origin === 'https://brics-bkwb.vercel.app' || origin.endsWith('.onrender.com')) {
       return callback(null, true);
     }
 
