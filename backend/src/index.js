@@ -38,6 +38,8 @@ if (!process.env.FOOTBALL_API_KEY && !process.env.API_FOOTBALL_KEY) {
   console.warn('⚠️ WARNING: No Football API Key found (FOOTBALL_API_KEY or API_FOOTBALL_KEY). External data fetching may fail.');
 }
 
+const { sendRoleUpdateEmail } = require('./services/emailService');
+const { sendRoleUpdateEmail } = require('./services/emailService');
 const { auth, requireRole } = require('./middleware/auth');
 const refereeRoutes = require('./routes/refereeRoutes');
 const governanceRoutes = require('./routes/governanceRoutes');
@@ -475,22 +477,38 @@ app.put('/api/users/:id/role', auth, requireRole(['ADMIN']), async (req, res) =>
       return res.status(400).json({ error: `Invalid role. Must be one of: ${validRoles.join(', ')}` });
     }
 
+    // Get current user data before update
+    const currentUser = await prisma.user.findUnique({
+      where: { id },
+      select: { email: true, firstName: true, lastName: true, role: true }
+    });
+
+    if (!currentUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
     const updatedUser = await prisma.user.update({
       where: { id },
       data: { role },
       select: { id: true, email: true, firstName: true, lastName: true, role: true }
     });
 
-    // Send email notification (mock implementation)
+    // Send email notification using EmailJS
     try {
-      console.log(`📧 Email notification sent to ${updatedUser.email}:`);
-      console.log(`Subject: Role Updated - BIFA Platform`);
-      console.log(`Dear ${updatedUser.firstName} ${updatedUser.lastName},`);
-      console.log(`Your role has been updated to: ${role}`);
-      console.log(`You can now access features specific to your new role.`);
-      console.log(`Best regards, BIFA Admin Team`);
+      const emailResult = await sendRoleUpdateEmail(
+        updatedUser.email,
+        `${updatedUser.firstName} ${updatedUser.lastName}`,
+        currentUser.role,
+        role
+      );
+      
+      if (emailResult.success) {
+        console.log(`✅ Email notification sent to ${updatedUser.email}`);
+      } else {
+        console.warn('⚠️ Email notification failed:', emailResult.error);
+      }
     } catch (emailError) {
-      console.warn('Email notification failed:', emailError);
+      console.warn('⚠️ Email notification failed:', emailError);
     }
 
     console.log(`User ${id} role updated to ${role} by Admin ${req.user.email}`);
