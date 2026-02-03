@@ -39,7 +39,6 @@ if (!process.env.FOOTBALL_API_KEY && !process.env.API_FOOTBALL_KEY) {
 }
 
 const { sendRoleUpdateEmail } = require('./services/emailService');
-const { sendRoleUpdateEmail } = require('./services/emailService');
 const { auth, requireRole } = require('./middleware/auth');
 const refereeRoutes = require('./routes/refereeRoutes');
 const governanceRoutes = require('./routes/governanceRoutes');
