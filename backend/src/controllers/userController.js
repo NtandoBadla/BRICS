@@ -1,5 +1,6 @@
 import prisma from "../prisma.js";
 import bcrypt from "bcryptjs";
+import { sendRoleUpdateEmail } from "../services/emailService.js";
 
 export const getUsers = async (req, res) => {
   try {
@@ -50,11 +51,25 @@ export const updateUserRole = async (req, res) => {
     const { id } = req.params;
     const { role } = req.body;
     
+    // Get current user data for email notification
+    const currentUser = await prisma.user.findUnique({
+      where: { id: parseInt(id) },
+      select: { email: true, firstName: true, lastName: true, role: true }
+    });
+    
+    if (!currentUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
     const user = await prisma.user.update({
       where: { id: parseInt(id) },
       data: { role },
       select: { id: true, email: true, firstName: true, lastName: true, role: true, createdAt: true }
     });
+    
+    // Send email notification about role change
+    const userName = `${currentUser.firstName} ${currentUser.lastName}`;
+    await sendRoleUpdateEmail(currentUser.email, userName, currentUser.role, role);
     
     res.json(user);
   } catch (error) {

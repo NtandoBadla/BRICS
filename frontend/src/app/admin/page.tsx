@@ -67,6 +67,10 @@ export default function AdminPage() {
     router.push('/admin/matches');
   };
 
+  const handleViewReports = () => {
+    router.push('/admin/reports');
+  };
+
   const loadFootballData = async () => {
     setFootballData(prev => ({ ...prev, loading: true, error: undefined }));
     try {
@@ -171,9 +175,13 @@ export default function AdminPage() {
                   <BarChart3 className="h-6 w-6" />
                   <span>Match Results</span>
                 </Button>
+                <Button onClick={handleViewReports} className="h-20 flex flex-col gap-2" variant="outline">
+                  <FileText className="h-6 w-6" />
+                  <span>Match Reports</span>
+                </Button>
                 <Button onClick={() => router.push('/competitions')} className="h-20 flex flex-col gap-2" variant="outline">
                   <Trophy className="h-6 w-6" />
-                  <span>View Competitions</span>
+                  <span>Competitions</span>
                 </Button>
                 <Button onClick={loadFootballData} className="h-20 flex flex-col gap-2" variant="outline" disabled={footballData.loading}>
                   <Eye className="h-6 w-6" />
@@ -278,6 +286,13 @@ export default function AdminPage() {
                           <p className="text-sm text-gray-600">Update scores and statuses</p>
                         </div>
                         <Button onClick={handleManageMatches} size="sm">Manage</Button>
+                      </div>
+                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                        <div>
+                          <p className="font-medium">Match Reports</p>
+                          <p className="text-sm text-gray-600">View referee match reports</p>
+                        </div>
+                        <Button onClick={handleViewReports} size="sm" variant="outline">View</Button>
                       </div>
                       <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
                         <div>
