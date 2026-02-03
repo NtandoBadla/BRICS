@@ -14,8 +14,18 @@ const missingVars = requiredVars.filter(key => !process.env[key]);
 
 if (missingVars.length > 0) {
   console.error(`❌ CRITICAL ERROR: Missing environment variables: ${missingVars.join(', ')}`);
+  console.log('💡 HINT: Set these environment variables in your Render dashboard:');
+  console.log('- DATABASE_URL: Your PostgreSQL connection string');
+  console.log('- JWT_SECRET: A secure random string for JWT tokens');
+  console.log('- DIRECT_URL: Direct database connection (optional for migrations)');
 } else {
   console.log('✅ Core environment variables detected.');
+}
+
+// Validate DATABASE_URL format if present
+if (process.env.DATABASE_URL && !process.env.DATABASE_URL.startsWith('postgresql://') && !process.env.DATABASE_URL.startsWith('postgres://')) {
+  console.error('❌ DATABASE_URL must start with postgresql:// or postgres://');
+  console.log('Current DATABASE_URL format:', process.env.DATABASE_URL?.substring(0, 20) + '...');
 }
 
 // Warn about DIRECT_URL instead of failing
