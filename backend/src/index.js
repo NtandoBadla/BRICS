@@ -47,23 +47,7 @@ const { footballApi } = require('./services/footballApi');
 
 // CORS configuration
 const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-
-    // Allow localhost and any Vercel deployment
-    if (origin.includes('localhost') || origin.endsWith('.vercel.app') || origin.endsWith('.onrender.com')) {
-      return callback(null, true);
-    }
-
-    // Add your production frontend domain here
-    if (origin === 'https://brics-bkwb.vercel.app' || origin.endsWith('.onrender.com') || origin === 'https://brics-platform.vercel.app') {
-      return callback(null, true);
-    }
-
-    console.log('Blocked by CORS:', origin);
-    callback(new Error('Not allowed by CORS'));
-  },
+  origin: '*', // Allow all origins temporarily for debugging
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -154,7 +138,6 @@ app.post('/api/auth/register', async (req, res) => {
       }
       return res.status(500).json({ error: `Database error: ${dbError.message}` });
     }
-
 
     const token = jwt.sign(
       { userId: user.id, email: user.email, role: user.role },
@@ -462,6 +445,7 @@ app.get('/api/users', auth, requireRole(['ADMIN', 'SECRETARIAT', 'FEDERATION_OFF
 
 // Update user role (only for ADMINs)
 app.put('/api/users/:id/role', auth, requireRole(['ADMIN']), async (req, res) => {
+  console.log('Role update request received:', { id: req.params.id, role: req.body.role });
   try {
     const { id } = req.params;
     const { role } = req.body;
@@ -492,7 +476,7 @@ app.put('/api/users/:id/role', auth, requireRole(['ADMIN']), async (req, res) =>
       select: { id: true, email: true, firstName: true, lastName: true, role: true }
     });
 
-    // Send email notification using EmailJS
+    // Send email notification using EmailJS (skip if email fails)
     try {
       const emailResult = await sendRoleUpdateEmail(
         updatedUser.email,
@@ -507,17 +491,17 @@ app.put('/api/users/:id/role', auth, requireRole(['ADMIN']), async (req, res) =>
         console.warn('⚠️ Email notification failed:', emailResult.error);
       }
     } catch (emailError) {
-      console.warn('⚠️ Email notification failed:', emailError);
+      console.warn('⚠️ Email notification failed:', emailError.message);
     }
 
     console.log(`User ${id} role updated to ${role} by Admin ${req.user.email}`);
-    res.json(updatedUser);
+    res.json({ success: true, user: updatedUser, message: 'Role updated successfully' });
   } catch (error) {
     console.error('Update Role Error:', error);
     if (error.code === 'P2025') {
       return res.status(404).json({ error: 'User not found' });
     }
-    res.status(500).json({ error: 'Failed to update user role' });
+    res.status(500).json({ error: 'Failed to update user role', details: error.message });
   }
 });
 
