@@ -21,8 +21,7 @@ async function handleRequest(request: NextRequest) {
   const url = new URL(request.url);
   const apiPath = url.pathname.replace('/api/', '');
   
-  // In production, this should point to your deployed backend
-  const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+  const backendUrl = 'https://brics-platform.onrender.com';
   const targetUrl = `${backendUrl}/${apiPath}${url.search}`;
   
   try {
