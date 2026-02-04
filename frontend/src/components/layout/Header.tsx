@@ -115,55 +115,57 @@ export function Header() {
           {/* Mobile: Auth Links + Menu Button */}
           <div className="md:hidden flex items-center space-x-2">
             {/* Mobile Auth Links - Always Visible */}
-            {authLinks.map((link) => (
-              <Link 
-                key={link.href}
-                href={link.href} 
-                className={`px-2 py-1 rounded text-xs font-medium ${
-                  link.href === '/signup'
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-700 border border-gray-300'
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
+            <div className="flex items-center space-x-1">
+              {authLinks.map((link) => (
+                <Link 
+                  key={link.href}
+                  href={link.href} 
+                  className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                    link.href === '/signup'
+                      ? 'bg-blue-600 text-white hover:bg-blue-700'
+                      : 'text-gray-700 border border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
             
             {/* Hamburger Menu Button */}
             <button 
               ref={buttonRef}
               onClick={() => setIsOpen(!isOpen)} 
-              className="p-2 rounded-lg text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="p-2 rounded-lg text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
               aria-expanded={isOpen}
               aria-controls="mobile-menu"
               aria-label={isOpen ? 'Close menu' : 'Open menu'}
             >
-              {isOpen ? (
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              ) : (
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              )}
+              <div className="w-5 h-5 flex flex-col justify-center items-center">
+                <span className={`block h-0.5 w-5 bg-current transition-all duration-300 ${
+                  isOpen ? 'rotate-45 translate-y-0.5' : '-translate-y-1'
+                }`} />
+                <span className={`block h-0.5 w-5 bg-current transition-all duration-300 ${
+                  isOpen ? 'opacity-0' : 'opacity-100'
+                }`} />
+                <span className={`block h-0.5 w-5 bg-current transition-all duration-300 ${
+                  isOpen ? '-rotate-45 -translate-y-0.5' : 'translate-y-1'
+                }`} />
+              </div>
             </button>
           </div>
         </div>
 
         {/* Mobile Navigation Menu */}
-        {isOpen && (
-          <div 
-            ref={menuRef}
-            id="mobile-menu"
-            className="md:hidden border-t border-gray-200 bg-white"
-          >
+        <div className={`md:hidden transition-all duration-300 ease-in-out overflow-hidden ${
+          isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+        }`}>
+          <div className="border-t border-gray-200 bg-white shadow-lg">
             <div className="px-2 pt-2 pb-3 space-y-1">
               {navLinks.map((link) => (
                 <Link 
                   key={link.href}
                   href={link.href} 
-                  className={`block px-3 py-3 rounded-md text-base font-medium ${
+                  className={`block px-4 py-3 rounded-md text-base font-medium transition-colors ${
                     isActiveLink(link.href)
                       ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-600'
                       : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600'
@@ -175,16 +177,13 @@ export function Header() {
               ))}
             </div>
           </div>
-        )}
+        </div>
       </nav>
       
       {/* Mobile backdrop */}
-      {isOpen && (
-        <div 
-          className="fixed inset-0 bg-black/20 z-40 md:hidden" 
-          onClick={() => setIsOpen(false)}
-        />
-      )}
+      <div className={`fixed inset-0 bg-black/20 z-40 md:hidden transition-opacity duration-300 ${
+        isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+      }`} onClick={() => setIsOpen(false)} />
     </header>
   );
 }

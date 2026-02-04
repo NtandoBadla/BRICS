@@ -446,18 +446,21 @@ app.get('/api/users', auth, requireRole(['ADMIN', 'SECRETARIAT', 'FEDERATION_OFF
 
 // Update user role (only for ADMINs)
 app.put('/api/users/:id/role', auth, requireRole(['ADMIN']), async (req, res) => {
-  console.log('Role update request received:', { id: req.params.id, role: req.body.role });
+  console.log('Role update request received:', { id: req.params.id, role: req.body.role, body: req.body });
   try {
     const { id } = req.params;
     const { role } = req.body;
 
-    if (!role) {
-      return res.status(400).json({ error: 'Role is required' });
+    if (!role || role.trim() === '') {
+      console.error('Role validation failed:', { role, body: req.body });
+      return res.status(400).json({ error: 'Role is required and cannot be empty' });
     }
 
     // Validate role
     const validRoles = ['ADMIN', 'SECRETARIAT', 'REFEREE', 'TEAM_MANAGER', 'FEDERATION_OFFICIAL'];
-    if (!validRoles.includes(role)) {
+    const normalizedRole = role.toString().trim().toUpperCase();
+    
+    if (!validRoles.includes(normalizedRole)) {
       return res.status(400).json({ error: `Invalid role. Must be one of: ${validRoles.join(', ')}` });
     }
 
@@ -473,7 +476,7 @@ app.put('/api/users/:id/role', auth, requireRole(['ADMIN']), async (req, res) =>
 
     const updatedUser = await prisma.user.update({
       where: { id },
-      data: { role },
+      data: { role: normalizedRole },
       select: { id: true, email: true, firstName: true, lastName: true, role: true }
     });
 
@@ -484,7 +487,7 @@ app.put('/api/users/:id/role', auth, requireRole(['ADMIN']), async (req, res) =>
         updatedUser.email,
         `${updatedUser.firstName} ${updatedUser.lastName}`,
         currentUser.role,
-        role
+        normalizedRole
       );
       
       if (emailResult.success) {
@@ -500,7 +503,7 @@ app.put('/api/users/:id/role', auth, requireRole(['ADMIN']), async (req, res) =>
       });
     }
 
-    console.log(`✅ User ${id} role updated from ${currentUser.role} to ${role} by Admin ${req.user.email}`);
+    console.log(`✅ User ${id} role updated from ${currentUser.role} to ${normalizedRole} by Admin ${req.user.email}`);
     res.json({ success: true, user: updatedUser, message: 'Role updated successfully' });
   } catch (error) {
     console.error('❌ Role update error:', {
