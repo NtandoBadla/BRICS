@@ -252,20 +252,60 @@ app.get('/api/cms/pages', async (req, res) => {
   }
 });
 
-// Create a new page (only for ADMINs)
-app.post('/api/cms/pages', auth, requireRole(['ADMIN']), async (req, res) => {
+// Create content (news/articles) - Admin only
+app.post('/api/cms/content', auth, requireRole(['ADMIN']), async (req, res) => {
   try {
-    const { title, slug, content, language = 'en', status = 'DRAFT' } = req.body;
-    const newPage = await prisma.page.create({
-      data: { title, slug, content, language, status }
-    });
-    res.status(201).json(newPage);
-  } catch (error) {
-    console.error('Failed to create page:', error);
-    if (error.code === 'P2002') {
-      return res.status(400).json({ error: 'A page with this slug already exists.' });
+    const { title, summary, content, type = 'NEWS', language = 'en', status = 'DRAFT' } = req.body;
+    
+    if (!title || !content) {
+      return res.status(400).json({ error: 'Title and content are required' });
     }
-    res.status(500).json({ error: 'Could not create page' });
+
+    const newContent = await prisma.content.create({
+      data: {
+        title,
+        summary,
+        content,
+        type,
+        language,
+        status,
+        authorId: req.user.userId
+      },
+      include: {
+        author: {
+          select: { firstName: true, lastName: true }
+        }
+      }
+    });
+    
+    res.status(201).json(newContent);
+  } catch (error) {
+    console.error('Failed to create content:', error);
+    res.status(500).json({ error: 'Could not create content' });
+  }
+});
+
+// Get all content for admin
+app.get('/api/cms/content', auth, requireRole(['ADMIN']), async (req, res) => {
+  try {
+    const { type, language = 'en' } = req.query;
+    const where = { language };
+    if (type) where.type = type;
+
+    const content = await prisma.content.findMany({
+      where,
+      include: {
+        author: {
+          select: { firstName: true, lastName: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    
+    res.json(content);
+  } catch (error) {
+    console.error('Failed to fetch content:', error);
+    res.status(500).json({ error: 'Could not fetch content' });
   }
 });
 

@@ -48,13 +48,18 @@ const getFallbackData = (type, params = {}) => {
   switch (type) {
     case 'leagues':
       return {
-        results: 5,
+        results: 50,
         response: [
-          { league: { id: 1, name: 'BRICS Championship', type: 'League', logo: 'https://placehold.co/40x40?text=BC' }, country: { name: 'International' }, seasons: [{ year: 2024 }] },
-          { league: { id: 2, name: 'Premier League', type: 'League', logo: 'https://placehold.co/40x40?text=PL' }, country: { name: 'England' }, seasons: [{ year: 2024 }] },
-          { league: { id: 3, name: 'La Liga', type: 'League', logo: 'https://placehold.co/40x40?text=LL' }, country: { name: 'Spain' }, seasons: [{ year: 2024 }] },
-          { league: { id: 4, name: 'Serie A', type: 'League', logo: 'https://placehold.co/40x40?text=SA' }, country: { name: 'Italy' }, seasons: [{ year: 2024 }] },
-          { league: { id: 5, name: 'Bundesliga', type: 'League', logo: 'https://placehold.co/40x40?text=BL' }, country: { name: 'Germany' }, seasons: [{ year: 2024 }] }
+          { league: { id: 39, name: 'Premier League', type: 'League', logo: 'https://media.api-sports.io/football/leagues/39.png' }, country: { name: 'England' }, seasons: [{ year: 2024 }] },
+          { league: { id: 140, name: 'La Liga', type: 'League', logo: 'https://media.api-sports.io/football/leagues/140.png' }, country: { name: 'Spain' }, seasons: [{ year: 2024 }] },
+          { league: { id: 135, name: 'Serie A', type: 'League', logo: 'https://media.api-sports.io/football/leagues/135.png' }, country: { name: 'Italy' }, seasons: [{ year: 2024 }] },
+          { league: { id: 78, name: 'Bundesliga', type: 'League', logo: 'https://media.api-sports.io/football/leagues/78.png' }, country: { name: 'Germany' }, seasons: [{ year: 2024 }] },
+          { league: { id: 61, name: 'Ligue 1', type: 'League', logo: 'https://media.api-sports.io/football/leagues/61.png' }, country: { name: 'France' }, seasons: [{ year: 2024 }] },
+          { league: { id: 2, name: 'UEFA Champions League', type: 'Cup', logo: 'https://media.api-sports.io/football/leagues/2.png' }, country: { name: 'World' }, seasons: [{ year: 2024 }] },
+          { league: { id: 3, name: 'UEFA Europa League', type: 'Cup', logo: 'https://media.api-sports.io/football/leagues/3.png' }, country: { name: 'World' }, seasons: [{ year: 2024 }] },
+          { league: { id: 1, name: 'World Cup', type: 'Cup', logo: 'https://media.api-sports.io/football/leagues/1.png' }, country: { name: 'World' }, seasons: [{ year: 2022 }] },
+          { league: { id: 4, name: 'Euro Championship', type: 'Cup', logo: 'https://media.api-sports.io/football/leagues/4.png' }, country: { name: 'Europe' }, seasons: [{ year: 2024 }] },
+          { league: { id: 71, name: 'Primeira Liga', type: 'League', logo: 'https://media.api-sports.io/football/leagues/71.png' }, country: { name: 'Portugal' }, seasons: [{ year: 2024 }] }
         ]
       };
     case 'fixtures':
