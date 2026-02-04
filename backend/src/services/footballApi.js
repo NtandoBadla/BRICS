@@ -1,5 +1,8 @@
 const FOOTBALL_API_BASE = 'https://v3.football.api-sports.io';
-const API_KEY = process.env.FOOTBALL_API_KEY || 'XxXxXxXxXxXxXxXxXxXxXxXx';
+const API_KEY = process.env.FOOTBALL_API_KEY || process.env.API_FOOTBALL_KEY || 'XxXxXxXxXxXxXxXxXxXxXxXx';
+
+// Log API key status on module load
+console.log('Football API Key Status:', API_KEY && API_KEY !== 'XxXxXxXxXxXxXxXxXxXxXxXx' ? 'Valid key loaded' : 'No valid key found');
 
 const footballApi = {
   async getLeagues(country, season) {
@@ -103,7 +106,12 @@ const footballApi = {
 
   async getTeamStatistics(team, league, season) {
     try {
-      const response = await fetch(`${FOOTBALL_API_BASE}/teams/statistics?team=${team}&league=${league}&season=${season}`, {
+      // Handle object parameters properly
+      const teamId = typeof team === 'object' ? team.team || team.id : team;
+      const leagueId = typeof league === 'object' ? league.league || league.id : league;
+      const seasonYear = typeof season === 'object' ? season.season || season.year : season;
+      
+      const response = await fetch(`${FOOTBALL_API_BASE}/teams/statistics?team=${teamId}&league=${leagueId}&season=${seasonYear}`, {
         method: 'GET',
         headers: {
           'x-apisports-key': API_KEY,
@@ -112,7 +120,10 @@ const footballApi = {
       });
 
       if (!response.ok) {
-        throw new Error(`API Error: ${response.status}`);
+        const errorText = await response.text();
+        console.error(`API Error: ${response.status} ${response.statusText}`);
+        console.error('Error response:', errorText);
+        throw new Error(`API Error: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
@@ -213,10 +224,20 @@ const footballApi = {
 
   async getFixtures(league, season, date) {
     try {
-      let url = `${FOOTBALL_API_BASE}/fixtures?league=${league}&season=${season}`;
+      // Handle object parameters properly
+      const leagueId = typeof league === 'object' ? league.league || league.id : league;
+      const seasonYear = typeof season === 'object' ? season.season || season.year : season;
+      
+      // Validate required parameters
+      if (!leagueId || !seasonYear) {
+        throw new Error('League ID and season are required');
+      }
+
+      let url = `${FOOTBALL_API_BASE}/fixtures?league=${leagueId}&season=${seasonYear}`;
       if (date) url += `&date=${date}`;
 
       console.log('Fetching fixtures from:', url);
+      console.log('Using API Key:', API_KEY ? 'Present' : 'Missing');
 
       const response = await fetch(url, {
         method: 'GET',
@@ -227,8 +248,10 @@ const footballApi = {
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
         console.error(`API Error: ${response.status} ${response.statusText}`);
-        throw new Error(`API Error: ${response.status}`);
+        console.error('Error response:', errorText);
+        throw new Error(`API Error: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();

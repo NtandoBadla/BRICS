@@ -362,7 +362,8 @@ app.get(['/api/competitions/matches', '/api/matches', '/api/fixtures'], async (r
     if (process.env.FOOTBALL_API_KEY || process.env.API_FOOTBALL_KEY) {
       if (footballApi && footballApi.getFixtures) {
         try {
-          const data = await footballApi.getFixtures({ league, season, date: date || undefined });
+          // Pass parameters correctly as strings/numbers, not objects
+          const data = await footballApi.getFixtures(league, season, date);
 
           // Handle API-Football structure (response property)
           if (data && Array.isArray(data.response) && data.response.length > 0) {
@@ -798,8 +799,8 @@ app.get('/api/football/team-statistics', auth, async (req, res) => {
     if (!team || !league || !season) {
       return res.status(400).json({ error: 'Missing required query parameters: team, league, season' });
     }
-    // Assuming the service has a method for this, passing the query object
-    const stats = await footballApi.getTeamStatistics({ team, league, season });
+    // Pass parameters correctly as strings/numbers, not as an object
+    const stats = await footballApi.getTeamStatistics(team, league, season);
     res.json(stats);
   } catch (error) {
     console.error(`Error fetching team statistics for team=${req.query.team}:`, error);
@@ -815,9 +816,9 @@ app.get('/api/football/player-statistics', auth, async (req, res) => {
       return res.status(400).json({ error: 'Missing required query parameters: team, league, season' });
     }
 
-    // Assuming the service has a method for this, passing the query object
-    const stats = await footballApi.getPlayerStatistics({ team, league, season });
-    res.json(stats);
+    // Note: The footballApi service doesn't have a getPlayerStatistics method
+    // You may need to implement this or use a different endpoint
+    res.status(501).json({ error: 'Player statistics endpoint not implemented yet' });
   } catch (error) {
     console.error(`Error fetching player statistics for team=${req.query.team}:`, error);
     res.status(500).json({ error: 'Failed to fetch player statistics' });
