@@ -7,59 +7,40 @@ console.log('API Key (first 8 chars):', API_KEY ? API_KEY.substring(0, 8) + '...
 
 // Helper function to make API requests with multiple authentication methods
 const makeAPIRequest = async (url, retries = 1) => {
-  const authMethods = [
-    { 'x-apisports-key': API_KEY },
-    { 'X-RapidAPI-Key': API_KEY, 'X-RapidAPI-Host': 'v3.football.api-sports.io' }
-  ];
+  try {
+    console.log(`Making API request to: ${url}`);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'x-apisports-key': API_KEY,
+        'Content-Type': 'application/json'
+      }
+    });
 
-  for (const headers of authMethods) {
-    for (let attempt = 1; attempt <= retries; attempt++) {
-      try {
-        console.log(`Attempting API request with headers:`, Object.keys(headers));
-        
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            ...headers,
-            'Content-Type': 'application/json'
-          }
-        });
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`API Error: ${response.status} ${response.statusText}`);
+      console.error('Error response:', errorText);
+      throw new Error(`API Error: ${response.status} - ${errorText}`);
+    }
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error(`API Error (${Object.keys(headers)[0]}, attempt ${attempt}): ${response.status} ${response.statusText}`);
-          console.error('Error response:', errorText);
-          
-          if (attempt === retries) {
-            continue; // Try next auth method
-          }
-          continue; // Retry with same auth method
-        }
-
-        const data = await response.json();
-        
-        // Check for API-level errors
-        if (data.errors && Object.keys(data.errors).length > 0) {
-          console.warn('⚠️ Football API returned errors:', JSON.stringify(data.errors));
-          if (data.errors.token) {
-            continue; // Try next auth method
-          }
-        }
-        
-        console.log(`✅ API request successful with ${Object.keys(headers)[0]}`);
-        return data;
-      } catch (error) {
-        console.error(`Request failed with ${Object.keys(headers)[0]}:`, error.message);
-        if (attempt === retries) {
-          continue; // Try next auth method
-        }
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+    const data = await response.json();
+    
+    // Check for API-level errors
+    if (data.errors && Object.keys(data.errors).length > 0) {
+      console.warn('⚠️ Football API returned errors:', JSON.stringify(data.errors));
+      if (data.errors.token) {
+        throw new Error('API authentication failed');
       }
     }
+    
+    console.log(`✅ API request successful - Results: ${data.results}`);
+    return data;
+  } catch (error) {
+    console.error('API request failed:', error.message);
+    throw error;
   }
-  
-  // If all auth methods fail, throw error
-  throw new Error('All authentication methods failed. Please check your API key.');
 };
 
 // Fallback data for when API is unavailable
@@ -137,7 +118,16 @@ const footballApi = {
         url += `?${params.toString()}`;
       }
 
-      return await makeAPIRequest(url);
+      const data = await makeAPIRequest(url);
+      
+      // Return real data if we have results
+      if (data && data.response && data.response.length > 0) {
+        return data;
+      }
+      
+      // Only return fallback if no results
+      console.log('🔄 No leagues found, returning fallback data');
+      return getFallbackData('leagues');
     } catch (error) {
       console.error('Football API Error (getLeagues):', error.message);
       console.log('🔄 Returning fallback data for leagues');

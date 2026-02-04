@@ -273,6 +273,8 @@ app.post('/api/cms/pages', auth, requireRole(['ADMIN']), async (req, res) => {
 app.get(['/api/cms/news', '/api/news'], async (req, res) => {
   try {
     const { language = 'en' } = req.query;
+    
+    // Try to get real news from database first
     const newsArticles = await prisma.content.findMany({
       where: {
         type: 'NEWS',
@@ -283,26 +285,71 @@ app.get(['/api/cms/news', '/api/news'], async (req, res) => {
         author: {
           select: { firstName: true, lastName: true }
         }
-      }
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 10
     });
 
+    // If we have real news articles, return them
     if (newsArticles && newsArticles.length > 0) {
-      res.json({ data: newsArticles });
-    } else {
-      // Fallback Mock News if DB is empty
-      res.json({
-        data: [
-          { id: 1, title: 'Tournament Kickoff Announced', summary: 'The 2024 season begins next month with exciting matches ahead.', type: 'NEWS', status: 'PUBLISHED', author: { firstName: 'System', lastName: 'Admin' }, createdAt: new Date() },
-          { id: 2, title: 'New Teams Joining', summary: 'Three new nations have joined the league, expanding the competition.', type: 'NEWS', status: 'PUBLISHED', author: { firstName: 'System', lastName: 'Admin' }, createdAt: new Date() }
-        ]
-      });
+      console.log(`✅ Found ${newsArticles.length} news articles in database`);
+      return res.json({ data: newsArticles });
     }
-  } catch (error) {
-    console.error('Failed to fetch news:', error);
-    // Return mock data on error to prevent empty page
+
+    // Only return mock data if database is empty
+    console.log('🔄 No news in database, returning mock data');
     res.json({
       data: [
-        { id: 1, title: 'Tournament Kickoff Announced', summary: 'The 2024 season begins next month with exciting matches ahead.', type: 'NEWS', status: 'PUBLISHED', author: { firstName: 'System', lastName: 'Admin' }, createdAt: new Date() }
+        { 
+          id: 1, 
+          title: 'BRICS Football Championship 2024 Announced', 
+          summary: 'The inaugural BRICS Football Championship will feature teams from Brazil, Russia, India, China, and South Africa.', 
+          content: 'The BRICS nations have come together to create an exciting new football tournament that will showcase the best talent from these emerging economies.',
+          type: 'NEWS', 
+          status: 'PUBLISHED', 
+          author: { firstName: 'BIFA', lastName: 'Admin' }, 
+          createdAt: new Date('2024-01-15'),
+          language: 'en'
+        },
+        { 
+          id: 2, 
+          title: 'New Stadium Facilities Unveiled', 
+          summary: 'State-of-the-art facilities have been completed in preparation for the upcoming tournament.', 
+          content: 'The new stadiums feature modern amenities and will provide an excellent experience for both players and spectators.',
+          type: 'NEWS', 
+          status: 'PUBLISHED', 
+          author: { firstName: 'BIFA', lastName: 'Admin' }, 
+          createdAt: new Date('2024-01-10'),
+          language: 'en'
+        },
+        { 
+          id: 3, 
+          title: 'Player Registration Opens', 
+          summary: 'National teams can now register their players for the championship.', 
+          content: 'The registration process has been streamlined to ensure all eligible players can participate in this historic tournament.',
+          type: 'NEWS', 
+          status: 'PUBLISHED', 
+          author: { firstName: 'BIFA', lastName: 'Admin' }, 
+          createdAt: new Date('2024-01-05'),
+          language: 'en'
+        }
+      ]
+    });
+  } catch (error) {
+    console.error('Failed to fetch news:', error);
+    // Return mock data on database error
+    res.json({
+      data: [
+        { 
+          id: 1, 
+          title: 'BRICS Football Championship 2024', 
+          summary: 'The tournament brings together the best teams from BRICS nations.', 
+          type: 'NEWS', 
+          status: 'PUBLISHED', 
+          author: { firstName: 'System', lastName: 'Admin' }, 
+          createdAt: new Date(),
+          language: 'en'
+        }
       ]
     });
   }
@@ -312,36 +359,39 @@ app.get(['/api/cms/news', '/api/news'], async (req, res) => {
 // Handles /api/competitions and /api/leagues
 app.get(['/api/competitions', '/api/leagues'], async (req, res) => {
   try {
-    // Default to 2023 season if not provided to ensure data is returned
     const { country, season = '2023' } = req.query;
 
     // If API key is present, try to fetch real data
     if (process.env.FOOTBALL_API_KEY || process.env.API_FOOTBALL_KEY) {
-      if (footballApi && footballApi.getLeagues) {
-        try {
-          const data = await footballApi.getLeagues(country, season);
+      try {
+        console.log(`Fetching competitions for country: ${country}, season: ${season}`);
+        const data = await footballApi.getLeagues(country, season);
 
-          if (data && Array.isArray(data.response) && data.response.length > 0) {
-            const competitions = data.response.map(item => ({
-              id: item.league.id,
-              name: item.league.name,
-              type: item.league.type,
-              logo: item.league.logo,
-              country: item.country.name,
-              season: item.seasons.length ? item.seasons[item.seasons.length - 1].year.toString() : 'N/A'
-            }));
-            return res.json(competitions);
-          }
-        } catch (apiError) {
-          console.error('API Fetch Error (Competitions):', apiError);
+        if (data && Array.isArray(data.response) && data.response.length > 0) {
+          const competitions = data.response.map(item => ({
+            id: item.league.id,
+            name: item.league.name,
+            type: item.league.type,
+            logo: item.league.logo,
+            country: item.country.name,
+            season: item.seasons.length ? item.seasons[item.seasons.length - 1].year.toString() : season
+          }));
+          console.log(`✅ Returning ${competitions.length} real competitions`);
+          return res.json(competitions);
         }
+      } catch (apiError) {
+        console.error('API Fetch Error (Competitions):', apiError.message);
       }
     }
 
     // Fallback Mock Data
+    console.log('🔄 Returning mock competitions data');
     res.json([
-      { id: 1, name: 'BRICS Cup 2024', type: 'Cup', logo: 'https://placehold.co/40x40?text=BC', country: 'International', season: '2024' },
-      { id: 2, name: 'Championship League', type: 'League', logo: 'https://placehold.co/40x40?text=CL', country: 'International', season: '2024' }
+      { id: 1, name: 'BRICS Championship 2024', type: 'Cup', logo: 'https://placehold.co/40x40?text=BC', country: 'International', season: '2024' },
+      { id: 2, name: 'Premier League', type: 'League', logo: 'https://placehold.co/40x40?text=PL', country: 'England', season: '2024' },
+      { id: 3, name: 'La Liga', type: 'League', logo: 'https://placehold.co/40x40?text=LL', country: 'Spain', season: '2024' },
+      { id: 4, name: 'Serie A', type: 'League', logo: 'https://placehold.co/40x40?text=SA', country: 'Italy', season: '2024' },
+      { id: 5, name: 'Bundesliga', type: 'League', logo: 'https://placehold.co/40x40?text=BL', country: 'Germany', season: '2024' }
     ]);
   } catch (error) {
     console.error('Error fetching competitions:', error);
