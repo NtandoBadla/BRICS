@@ -479,6 +479,7 @@ app.put('/api/users/:id/role', auth, requireRole(['ADMIN']), async (req, res) =>
 
     // Send email notification using EmailJS (skip if email fails)
     try {
+      console.log(`📧 Attempting to send email to ${updatedUser.email}...`);
       const emailResult = await sendRoleUpdateEmail(
         updatedUser.email,
         `${updatedUser.firstName} ${updatedUser.lastName}`,
@@ -487,18 +488,27 @@ app.put('/api/users/:id/role', auth, requireRole(['ADMIN']), async (req, res) =>
       );
       
       if (emailResult.success) {
-        console.log(`✅ Email notification sent to ${updatedUser.email}`);
+        console.log(`✅ Email notification sent successfully to ${updatedUser.email}`);
       } else {
-        console.warn('⚠️ Email notification failed:', emailResult.error);
+        console.error('❌ Email notification failed:', emailResult.error);
       }
     } catch (emailError) {
-      console.warn('⚠️ Email notification failed:', emailError.message);
+      console.error('❌ Email notification error:', {
+        message: emailError.message,
+        stack: emailError.stack,
+        name: emailError.name
+      });
     }
 
-    console.log(`User ${id} role updated to ${role} by Admin ${req.user.email}`);
+    console.log(`✅ User ${id} role updated from ${currentUser.role} to ${role} by Admin ${req.user.email}`);
     res.json({ success: true, user: updatedUser, message: 'Role updated successfully' });
   } catch (error) {
-    console.error('Update Role Error:', error);
+    console.error('❌ Role update error:', {
+      message: error.message,
+      stack: error.stack,
+      code: error.code,
+      name: error.name
+    });
     if (error.code === 'P2025') {
       return res.status(404).json({ error: 'User not found' });
     }
