@@ -8,15 +8,12 @@ const nextConfig: NextConfig = {
     unoptimized: true
   },
   async rewrites() {
-    if (process.env.NODE_ENV === 'development') {
-      return [
-        {
-          source: '/api/:path*',
-          destination: 'http://localhost:5000/api/:path*',
-        },
-      ];
-    }
-    return [];
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'https://brics-platform.onrender.com/api/:path*',
+      },
+    ];
   },
 };
 
