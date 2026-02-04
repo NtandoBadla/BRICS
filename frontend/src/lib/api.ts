@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const API_URL = process.env.NODE_ENV === 'production' ? 'https://brics-platform.onrender.com' : 'http://localhost:5000';
+const API_URL = 'https://brics-platform.onrender.com';
 
 // Error types for better error handling
 export interface ApiError {
