@@ -253,9 +253,9 @@ app.get('/api/cms/pages', async (req, res) => {
 });
 
 // Create content (news/articles) - Admin only
-app.post('/api/cms/content', auth, requireRole(['ADMIN']), async (req, res) => {
+app.post(['/api/cms/content', '/api/cms/news'], auth, requireRole(['ADMIN']), async (req, res) => {
   try {
-    const { title, summary, content, type = 'NEWS', language = 'en', status = 'DRAFT' } = req.body;
+    const { title, summary, content, excerpt, type = 'NEWS', language = 'en', status = 'PUBLISHED', category } = req.body;
     
     if (!title || !content) {
       return res.status(400).json({ error: 'Title and content are required' });
@@ -264,7 +264,7 @@ app.post('/api/cms/content', auth, requireRole(['ADMIN']), async (req, res) => {
     const newContent = await prisma.content.create({
       data: {
         title,
-        summary,
+        summary: summary || excerpt,
         content,
         type,
         language,
@@ -278,15 +278,19 @@ app.post('/api/cms/content', auth, requireRole(['ADMIN']), async (req, res) => {
       }
     });
     
+    console.log(`✅ Created ${type} article: ${title}`);
     res.status(201).json(newContent);
   } catch (error) {
     console.error('Failed to create content:', error);
+    if (error.code === 'P2021') {
+      return res.status(500).json({ error: 'Database tables not found. Please run migrations.' });
+    }
     res.status(500).json({ error: 'Could not create content' });
   }
 });
 
 // Get all content for admin
-app.get('/api/cms/content', auth, requireRole(['ADMIN']), async (req, res) => {
+app.get(['/api/cms/content', '/api/cms/pages'], auth, requireRole(['ADMIN']), async (req, res) => {
   try {
     const { type, language = 'en' } = req.query;
     const where = { language };
@@ -302,9 +306,13 @@ app.get('/api/cms/content', auth, requireRole(['ADMIN']), async (req, res) => {
       orderBy: { createdAt: 'desc' }
     });
     
+    console.log(`📄 Fetched ${content.length} content items`);
     res.json(content);
   } catch (error) {
     console.error('Failed to fetch content:', error);
+    if (error.code === 'P2021') {
+      return res.status(500).json({ error: 'Database tables not found. Please run migrations.' });
+    }
     res.status(500).json({ error: 'Could not fetch content' });
   }
 });
