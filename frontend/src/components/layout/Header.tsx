@@ -63,7 +63,7 @@ export function Header() {
   const isActiveLink = (href: string) => pathname === href;
 
   return (
-    <header className="bg-white shadow-sm border-b sticky top-0 z-50">
+    <header className="bg-white shadow-sm border-b sticky top-0 z-50 relative">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -156,16 +156,16 @@ export function Header() {
         </div>
 
         {/* Mobile Navigation Menu */}
-        <div className={`md:hidden transition-all duration-300 ease-in-out overflow-hidden ${
-          isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+        <div className={`md:hidden transition-all duration-300 ease-in-out ${
+          isOpen ? 'block' : 'hidden'
         }`}>
-          <div className="border-t border-gray-200 bg-white shadow-lg">
-            <div className="px-2 pt-2 pb-3 space-y-1">
+          <div className="absolute top-full left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
+            <div className="px-2 py-3 space-y-1 max-h-96 overflow-y-auto">
               {navLinks.map((link) => (
                 <Link 
                   key={link.href}
                   href={link.href} 
-                  className={`block px-4 py-3 rounded-md text-base font-medium transition-colors ${
+                  className={`block px-4 py-3 rounded-md text-base font-medium transition-colors min-h-[48px] flex items-center ${
                     isActiveLink(link.href)
                       ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-600'
                       : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600'
