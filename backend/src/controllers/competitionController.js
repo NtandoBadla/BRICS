@@ -1,9 +1,8 @@
-import prisma from '../prisma.js';
-import { footballApi } from '../services/footballApi.js';
-import { footballApi } from '../services/footballApi.js';
+const prisma = require('../prisma');
+const { footballApi } = require('../services/footballApi');
 
 // Competition Management
-export const createCompetition = async (req, res) => {
+const createCompetition = async (req, res) => {
   try {
     const { name, description, startDate, endDate, location, format } = req.body;
     
@@ -24,7 +23,7 @@ export const createCompetition = async (req, res) => {
   }
 };
 
-export const getCompetitions = async (req, res) => {
+const getCompetitions = async (req, res) => {
   try {
     const { country, season = '2023' } = req.query;
 
@@ -67,7 +66,7 @@ export const getCompetitions = async (req, res) => {
   }
 };
 
-export const getCompetitionById = async (req, res) => {
+const getCompetitionById = async (req, res) => {
   try {
     const { id } = req.params;
     const competition = await prisma.competition.findUnique({
@@ -96,7 +95,7 @@ export const getCompetitionById = async (req, res) => {
   }
 };
 
-export const updateCompetition = async (req, res) => {
+const updateCompetition = async (req, res) => {
   try {
     const { id } = req.params;
     const { name, description, startDate, endDate, location, status, format } = req.body;
@@ -120,7 +119,7 @@ export const updateCompetition = async (req, res) => {
   }
 };
 
-export const deleteCompetition = async (req, res) => {
+const deleteCompetition = async (req, res) => {
   try {
     const { id } = req.params;
     await prisma.competition.delete({ where: { id } });
@@ -130,7 +129,7 @@ export const deleteCompetition = async (req, res) => {
   }
 };
 
-export const getCompetitionStandings = async (req, res) => {
+const getCompetitionStandings = async (req, res) => {
   try {
     const { id } = req.params;
     const standings = await prisma.standing.findMany({
@@ -146,7 +145,7 @@ export const getCompetitionStandings = async (req, res) => {
 };
 
 // Match Management
-export const createMatch = async (req, res) => {
+const createMatch = async (req, res) => {
   try {
     const { competitionId, homeTeamId, awayTeamId, scheduledAt, venue } = req.body;
     
@@ -171,7 +170,7 @@ export const createMatch = async (req, res) => {
   }
 };
 
-export const getMatches = async (req, res) => {
+const getMatches = async (req, res) => {
   try {
     const { league = '39', season = '2023', date } = req.query;
 
@@ -226,7 +225,7 @@ export const getMatches = async (req, res) => {
   }
 };
 
-export const getMatchById = async (req, res) => {
+const getMatchById = async (req, res) => {
   try {
     const { id } = req.params;
     const match = await prisma.match.findUnique({
@@ -255,7 +254,7 @@ export const getMatchById = async (req, res) => {
   }
 };
 
-export const updateMatch = async (req, res) => {
+const updateMatch = async (req, res) => {
   try {
     const { id } = req.params;
     const { scheduledAt, venue, status, homeScore, awayScore } = req.body;
@@ -282,7 +281,7 @@ export const updateMatch = async (req, res) => {
   }
 };
 
-export const deleteMatch = async (req, res) => {
+const deleteMatch = async (req, res) => {
   try {
     const { id } = req.params;
     await prisma.match.delete({ where: { id } });
@@ -292,7 +291,7 @@ export const deleteMatch = async (req, res) => {
   }
 };
 
-export const getLiveMatches = async (req, res) => {
+const getLiveMatches = async (req, res) => {
   try {
     const liveMatches = await prisma.match.findMany({
       where: { status: 'LIVE' },
@@ -311,7 +310,7 @@ export const getLiveMatches = async (req, res) => {
 };
 
 // Match Events & Statistics
-export const createMatchEvent = async (req, res) => {
+const createMatchEvent = async (req, res) => {
   try {
     const { id } = req.params;
     const { playerId, teamId, type, minute, details } = req.body;
@@ -337,7 +336,7 @@ export const createMatchEvent = async (req, res) => {
   }
 };
 
-export const getMatchEvents = async (req, res) => {
+const getMatchEvents = async (req, res) => {
   try {
     const { id } = req.params;
     const events = await prisma.matchEvent.findMany({
@@ -355,7 +354,7 @@ export const getMatchEvents = async (req, res) => {
   }
 };
 
-export const createMatchStatistics = async (req, res) => {
+const createMatchStatistics = async (req, res) => {
   try {
     const { id } = req.params;
     const { teamId, statType, value } = req.body;
@@ -376,7 +375,7 @@ export const createMatchStatistics = async (req, res) => {
   }
 };
 
-export const getMatchStatistics = async (req, res) => {
+const getMatchStatistics = async (req, res) => {
   try {
     const { id } = req.params;
     const statistics = await prisma.matchStatistic.findMany({
@@ -390,7 +389,7 @@ export const getMatchStatistics = async (req, res) => {
   }
 };
 
-export const updateMatchScore = async (req, res) => {
+const updateMatchScore = async (req, res) => {
   try {
     const { id } = req.params;
     const { homeScore, awayScore } = req.body;
@@ -408,4 +407,24 @@ export const updateMatchScore = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+};
+
+module.exports = {
+  createCompetition,
+  getCompetitions,
+  getCompetitionById,
+  updateCompetition,
+  deleteCompetition,
+  getCompetitionStandings,
+  createMatch,
+  getMatches,
+  getMatchById,
+  updateMatch,
+  deleteMatch,
+  getLiveMatches,
+  createMatchEvent,
+  getMatchEvents,
+  createMatchStatistics,
+  getMatchStatistics,
+  updateMatchScore
 };
