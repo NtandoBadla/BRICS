@@ -1,7 +1,7 @@
 "use client";
 
 import ProtectedRoute from '@/components/ProtectedRoute';
-import PlayerManagement from '@/components/PlayerManagement';
+import CreatePlayerForm from '@/components/CreatePlayerFormModern';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -58,7 +58,7 @@ export default function TeamManagerPage() {
             </Card>
           </div>
 
-          <PlayerManagement />
+          <CreatePlayerForm />
         </main>
       </div>
     </ProtectedRoute>

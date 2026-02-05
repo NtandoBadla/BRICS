@@ -42,7 +42,7 @@ export default function PlayerManagement() {
   const fetchPlayers = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/players', {
+      const response = await fetch('/api/dashboard/athletes', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -63,22 +63,21 @@ export default function PlayerManagement() {
 
     try {
       const token = localStorage.getItem('token');
-      const url = editingPlayer ? `/api/players/${editingPlayer.id}` : '/api/players';
-      const method = editingPlayer ? 'PUT' : 'POST';
-
-      const response = await fetch(url, {
-        method,
+      const response = await fetch('/api/dashboard/athletes', {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          ...formData,
+          teamId: user?.teamId
+        })
       });
 
       if (response.ok) {
         await fetchPlayers();
         setIsDialogOpen(false);
-        setEditingPlayer(null);
         setFormData({
           firstName: '',
           lastName: '',

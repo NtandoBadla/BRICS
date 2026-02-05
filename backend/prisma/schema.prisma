@@ -14,6 +14,9 @@ enum Role {
   REFEREE
   TEAM_MANAGER
   FEDERATION_OFFICIAL
+  AGENT
+  PLAYER
+  COACH
 }
 
 enum Gender {
@@ -51,6 +54,11 @@ model User {
   approvedDocuments Document[] @relation("DocumentApprover")
   auditLogs         AuditLog[]
   nationalSquads    NationalSquad[]
+  representedAthletes Athlete[] @relation("AthleteAgent")
+  sentAgentRequests AgentRequest[] @relation("AgentRequestSender")
+  receivedAgentRequests AgentRequest[] @relation("AgentRequestReceiver")
+  sentNotifications Notification[] @relation("NotificationSender")
+  receivedNotifications Notification[] @relation("NotificationReceiver")
   
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -85,16 +93,22 @@ model Athlete {
   teamId      String
   team        Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
   photoUrl    String?
+  agentId     String?
+  agent       User?     @relation("AthleteAgent", fields: [agentId], references: [id])
   
   // Relations
   matchEvents        MatchEvent[]
   disciplinaryReports DisciplinaryReport[]
   nationalSquads     NationalSquad[]
+  transferRequests   TransferRequest[]
+  agentRequests      AgentRequest[]
+  notifications      Notification[]
   
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
   @@index([teamId])
+  @@index([agentId])
 }
 
 // Feature 1: Referee Registry + Disciplinary Reporting
@@ -510,4 +524,67 @@ model NationalSquad {
   athletes    Athlete[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+}
+
+// Dashboard System Models
+model TransferRequest {
+  id          String            @id @default(uuid())
+  athleteId   String
+  athlete     Athlete           @relation(fields: [athleteId], references: [id])
+  fromTeamId  String
+  toTeamId    String?
+  reason      String
+  status      TransferStatus    @default(PENDING)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+model AgentRequest {
+  id          String            @id @default(uuid())
+  athleteId   String
+  athlete     Athlete           @relation(fields: [athleteId], references: [id])
+  agentId     String
+  agent       User              @relation("AgentRequestSender", fields: [agentId], references: [id])
+  currentAgentId String?
+  currentAgent User?            @relation("AgentRequestReceiver", fields: [currentAgentId], references: [id])
+  message     String?
+  status      RequestStatus     @default(PENDING)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+model Notification {
+  id          String            @id @default(uuid())
+  athleteId   String
+  athlete     Athlete           @relation(fields: [athleteId], references: [id])
+  senderId    String?
+  sender      User?             @relation("NotificationSender", fields: [senderId], references: [id])
+  receiverId  String
+  receiver    User              @relation("NotificationReceiver", fields: [receiverId], references: [id])
+  type        NotificationType
+  title       String
+  message     String
+  isRead      Boolean           @default(false)
+  createdAt   DateTime          @default(now())
+}
+
+enum TransferStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+enum RequestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+enum NotificationType {
+  TRANSFER_REQUEST
+  AGENT_REQUEST
+  AGENT_OFFER
+  TEAM_ASSIGNMENT
+  GENERAL
 }

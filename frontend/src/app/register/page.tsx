@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UserPlus } from 'lucide-react';
 
 export default function RegisterPage() {
@@ -19,6 +20,7 @@ export default function RegisterPage() {
     password: '',
     firstName: '',
     lastName: '',
+    role: 'TEAM_MANAGER'
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -29,7 +31,20 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const data = await api.register(formData);
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Registration failed');
+      }
+
       login(data.token, data.user);
       router.push(data.redirectUrl || '/dashboard');
     } catch (err: any) {
@@ -38,6 +53,16 @@ export default function RegisterPage() {
       setLoading(false);
     }
   };
+
+  const roleOptions = [
+    { value: 'TEAM_MANAGER', label: 'Team Manager' },
+    { value: 'AGENT', label: 'Agent' },
+    { value: 'PLAYER', label: 'Player/Athlete' },
+    { value: 'COACH', label: 'Coach' },
+    { value: 'REFEREE', label: 'Referee' },
+    { value: 'FEDERATION_OFFICIAL', label: 'Federation Official' },
+    { value: 'SECRETARIAT', label: 'Secretariat' }
+  ];
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
@@ -110,6 +135,22 @@ export default function RegisterPage() {
                 required
                 disabled={loading}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="role">Role</Label>
+              <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select your role" />
+                </SelectTrigger>
+                <SelectContent>
+                  {roleOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>

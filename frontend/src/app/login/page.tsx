@@ -82,6 +82,15 @@ export default function LoginPage() {
         case 'FEDERATION_OFFICIAL':
           router.push('/federation');
           break;
+        case 'AGENT':
+          router.push('/agent');
+          break;
+        case 'PLAYER':
+          router.push('/player');
+          break;
+        case 'COACH':
+          router.push('/coach');
+          break;
         default:
           router.push('/');
           break;
