@@ -17,7 +17,7 @@ import { AlertCircle, Trash2, UserCog, ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface User {
-    id: number;
+    id: string;
     email: string;
     firstName: string;
     lastName: string;
@@ -32,7 +32,7 @@ export default function UserManagementPage() {
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [actionLoading, setActionLoading] = useState<number | null>(null); // ID of user being acted upon
+    const [actionLoading, setActionLoading] = useState<string | null>(null); // ID of user being acted upon
 
     useEffect(() => {
         fetchUsers();
@@ -53,7 +53,7 @@ export default function UserManagementPage() {
         }
     };
 
-    const handleRoleUpdate = async (userId: number, newRole: string) => {
+    const handleRoleUpdate = async (userId: string, newRole: string) => {
         try {
             setActionLoading(userId);
             const token = localStorage.getItem('token');
@@ -80,7 +80,7 @@ export default function UserManagementPage() {
         }
     };
 
-    const handleDeleteUser = async (userId: number) => {
+    const handleDeleteUser = async (userId: string) => {
         if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
 
         try {

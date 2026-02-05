@@ -43,6 +43,9 @@ const { auth, requireRole } = require('./middleware/auth');
 const refereeRoutes = require('./routes/refereeRoutes');
 const governanceRoutes = require('./routes/governanceRoutes');
 const footballRoutes = require('./routes/footballRoutes');
+const cmsRoutes = require('./routes/cmsRoutes');
+const competitionRoutes = require('./routes/competitionRoutes');
+const userRoutes = require('./routes/userRoutes');
 const { footballApi } = require('./services/footballApi');
 
 // CORS configuration
@@ -518,139 +521,18 @@ app.get(['/api/competitions/matches', '/api/matches', '/api/fixtures'], async (r
   }
 });
 
-// Admin Dashboard Endpoints
-// Get all users (only for ADMINs)
-app.get('/api/users', auth, requireRole(['ADMIN', 'SECRETARIAT', 'FEDERATION_OFFICIAL']), async (req, res) => {
-  try {
-    const users = await prisma.user.findMany({
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        role: true,
-        createdAt: true
-      }
-    });
-    res.json(users);
-  } catch (error) {
-    console.error('Fetch Users Error:', error);
-    if (error.code === 'P2021') {
-      return res.status(500).json({ error: 'Database tables not found. Please run migrations.' });
-    }
-    res.status(500).json({ error: 'Failed to fetch users' });
-  }
-});
+// Feature Routes
+// Note: We mount these BEFORE the safe endpoints so specific routes (like /api/football/sync) take precedence
+app.use('/api/referees', refereeRoutes);
+app.use('/api/governance', governanceRoutes);
+app.use('/api/football', footballRoutes);
+app.use('/api/cms', cmsRoutes);
+app.use('/api', competitionRoutes);
+app.use('/api', userRoutes);
 
-// Update user role (only for ADMINs)
-app.put('/api/users/:id/role', auth, requireRole(['ADMIN']), async (req, res) => {
-  console.log('Role update request received:', { id: req.params.id, role: req.body.role, body: req.body });
-  try {
-    const { id } = req.params;
-    const { role } = req.body;
-
-    if (!role || role.trim() === '') {
-      console.error('Role validation failed:', { role, body: req.body });
-      return res.status(400).json({ error: 'Role is required and cannot be empty' });
-    }
-
-    // Validate role
-    const validRoles = ['ADMIN', 'SECRETARIAT', 'REFEREE', 'TEAM_MANAGER', 'FEDERATION_OFFICIAL'];
-    const normalizedRole = role.toString().trim().toUpperCase();
-    
-    if (!validRoles.includes(normalizedRole)) {
-      return res.status(400).json({ error: `Invalid role. Must be one of: ${validRoles.join(', ')}` });
-    }
-
-    // Get current user data before update
-    const currentUser = await prisma.user.findUnique({
-      where: { id },
-      select: { email: true, firstName: true, lastName: true, role: true }
-    });
-
-    if (!currentUser) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    const updatedUser = await prisma.user.update({
-      where: { id },
-      data: { role: normalizedRole },
-      select: { id: true, email: true, firstName: true, lastName: true, role: true }
-    });
-
-    // Send email notification using EmailJS (skip if email fails)
-    try {
-      console.log(`📧 Attempting to send email to ${updatedUser.email}...`);
-      const emailResult = await sendRoleUpdateEmail(
-        updatedUser.email,
-        `${updatedUser.firstName} ${updatedUser.lastName}`,
-        currentUser.role,
-        normalizedRole
-      );
-      
-      if (emailResult.success) {
-        console.log(`✅ Email notification sent successfully to ${updatedUser.email}`);
-      } else {
-        console.error('❌ Email notification failed:', emailResult.error);
-      }
-    } catch (emailError) {
-      console.error('❌ Email notification error:', {
-        message: emailError.message,
-        stack: emailError.stack,
-        name: emailError.name
-      });
-    }
-
-    console.log(`✅ User ${id} role updated from ${currentUser.role} to ${normalizedRole} by Admin ${req.user.email}`);
-    res.json({ success: true, user: updatedUser, message: 'Role updated successfully' });
-  } catch (error) {
-    console.error('❌ Role update error:', {
-      message: error.message,
-      stack: error.stack,
-      code: error.code,
-      name: error.name
-    });
-    if (error.code === 'P2025') {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    res.status(500).json({ error: 'Failed to update user role', details: error.message });
-  }
-});
-
-// Delete user (only for ADMINs)
-app.delete('/api/users/:id', auth, requireRole(['ADMIN']), async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    if (!id) {
-      return res.status(400).json({ error: 'User ID is required' });
-    }
-
-    // Prevent deleting self
-    if (id === req.user.userId) {
-      return res.status(400).json({ error: 'Cannot delete your own account' });
-    }
-
-    await prisma.user.delete({
-      where: { id }
-    });
-
-    console.log(`User ${id} deleted by Admin ${req.user.email}`);
-    res.json({ message: 'User deleted successfully' });
-  } catch (error) {
-    console.error('Delete User Error:', error);
-    if (error.code === 'P2025') {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    res.status(500).json({ error: 'Failed to delete user' });
-  }
-});
-
-// Get system stats (for Admin, Secretariat, Federation Official)
-// This endpoint handles both /api/admin/stats and /api/admin/dashboard for compatibility
+// Dashboard endpoints
 app.get(['/api/admin/stats', '/api/admin/dashboard'], auth, requireRole(['ADMIN', 'SECRETARIAT', 'FEDERATION_OFFICIAL']), async (req, res) => {
   try {
-    // Split into two batches to prevent connection pool timeout (limit approx 5)
     const [users, referees, documents, reports] = await Promise.all([
       prisma.user.count(),
       prisma.referee.count(),
@@ -682,24 +564,14 @@ app.get('/api/federation/dashboard', auth, requireRole(['FEDERATION_OFFICIAL', '
   res.json({ message: "Federation Dashboard", user: req.user, status: 'active' });
 });
 
-// --- Football Data Endpoints ---
-// Explicitly define football data access for relevant roles, including ADMIN.
-// These are placed BEFORE the main footballRoutes router to ensure they are matched first.
-
-// Made public (removed auth) so the "Teams" page works for all users
-// Added /api/teams alias
+// Football Data Endpoints
 app.get(['/api/football/teams', '/api/teams'], async (req, res) => {
   try {
     const { league = '39', season = '2023' } = req.query;
 
-    // If league and season are provided, fetch from external API
     if (process.env.FOOTBALL_API_KEY || process.env.API_FOOTBALL_KEY) {
-      // Assuming footballApi service has getTeams method
       if (footballApi && footballApi.getTeams) {
         try {
-          // footballApi.getTeams expects (league, season, id) in that order based on the file inspection
-          // or we can pass them as named arguments if we refactor, but for now looking at the file:
-          // async getTeams(league, season, id)
           const data = await footballApi.getTeams(league, season);
 
           if (data && Array.isArray(data.response) && data.response.length > 0) {
@@ -716,7 +588,6 @@ app.get(['/api/football/teams', '/api/teams'], async (req, res) => {
           console.error('API Fetch Error (Teams):', apiError);
         }
       }
-      // If API returns empty, fall through to DB/Mock
     }
 
     const teams = await prisma.team.findMany();
@@ -724,7 +595,6 @@ app.get(['/api/football/teams', '/api/teams'], async (req, res) => {
     if (teams.length > 0) {
       res.json(teams);
     } else {
-      // Fallback Mock Teams
       res.json([
         { id: 1, name: 'Brazil', logo: 'https://placehold.co/60x60/png?text=BRA', founded: 1914, venue: 'Maracanã' },
         { id: 2, name: 'Russia', logo: 'https://placehold.co/60x60/png?text=RUS', founded: 1912, venue: 'Luzhniki' },
@@ -735,7 +605,6 @@ app.get(['/api/football/teams', '/api/teams'], async (req, res) => {
     }
   } catch (error) {
     console.error('Error fetching teams for admin/privileged user:', error);
-    // Return mock data on error
     res.json([
       { id: 1, name: 'Brazil', logo: 'https://placehold.co/60x60/png?text=BRA', founded: 1914, venue: 'Maracanã' }
     ]);
@@ -745,7 +614,7 @@ app.get(['/api/football/teams', '/api/teams'], async (req, res) => {
 app.get('/api/football/matches', auth, requireRole(['ADMIN', 'TEAM_MANAGER', 'FEDERATION_OFFICIAL']), async (req, res) => {
   try {
     const matches = await prisma.match.findMany({
-      include: { homeTeam: true, awayTeam: true } // Include team data for context
+      include: { homeTeam: true, awayTeam: true }
     });
     res.json(matches);
   } catch (error) {
@@ -753,12 +622,6 @@ app.get('/api/football/matches', auth, requireRole(['ADMIN', 'TEAM_MANAGER', 'FE
     res.status(500).json({ error: 'Failed to fetch matches' });
   }
 });
-
-// Feature Routes
-// Note: We mount these BEFORE the safe endpoints so specific routes (like /api/football/sync) take precedence
-app.use('/api/referees', refereeRoutes);
-app.use('/api/governance', governanceRoutes);
-app.use('/api/football', footballRoutes);
 
 // Player Management Routes
 app.get('/api/players', auth, async (req, res) => {
