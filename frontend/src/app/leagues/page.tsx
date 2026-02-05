@@ -21,19 +21,20 @@ export default function LeaguesPage() {
 
   useEffect(() => {
     const filtered = leagues.filter((league: any) => 
-      league.league?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      league.country?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+      league.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      league.country?.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredLeagues(filtered);
   }, [searchTerm, leagues]);
 
   const fetchLeagues = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/football/leagues`);
+      const response = await fetch(`${API_BASE_URL}/api/leagues`);
       if (response.ok) {
         const data = await response.json();
-        setLeagues(data.response || []);
-        setFilteredLeagues(data.response || []);
+        console.log('Leagues data:', data);
+        setLeagues(data || []);
+        setFilteredLeagues(data || []);
       }
     } catch (error) {
       console.error('Error fetching leagues');
@@ -83,26 +84,24 @@ export default function LeaguesPage() {
         ) : filteredLeagues.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredLeagues.map((league: any, index: number) => (
-              <Link href={`/leagues/${league.league?.id}`} key={index}>
+              <Link href={`/leagues/${league.id}`} key={index}>
                 <Card className="hover:shadow-lg transition-shadow cursor-pointer">
                   <CardHeader>
                     <div className="flex items-center gap-3 mb-2">
-                      {league.league?.logo && (
-                        <img src={league.league.logo} alt={league.league.name} className="h-12 w-12 object-contain" />
+                      {league.logo && (
+                        <img src={league.logo} alt={league.name} className="h-12 w-12 object-contain" />
                       )}
                       <div>
-                        <CardTitle className="text-lg">{league.league?.name}</CardTitle>
-                        <p className="text-sm text-gray-500">{league.country?.name}</p>
+                        <CardTitle className="text-lg">{league.name}</CardTitle>
+                        <p className="text-sm text-gray-500">{league.country}</p>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-sm text-gray-600">Type: {league.league?.type}</p>
-                    {league.seasons && league.seasons.length > 0 && (
-                      <p className="text-sm text-gray-600 mt-1">
-                        Seasons: {league.seasons.length}
-                      </p>
-                    )}
+                    <p className="text-sm text-gray-600">Type: {league.type}</p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Season: {league.season}
+                    </p>
                   </CardContent>
                 </Card>
               </Link>
