@@ -267,6 +267,7 @@ app.post(['/api/cms/content', '/api/cms/news'], auth, requireRole(['ADMIN']), as
     const newContent = await prisma.content.create({
       data: {
         title,
+        slug: title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
         summary: summary || excerpt,
         content,
         type,
