@@ -10,6 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Search, Users, Send, Eye } from 'lucide-react';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
 export default function AgentDashboard() {
   const [myAthletes, setMyAthletes] = useState<any[]>([]);
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -25,43 +27,50 @@ export default function AgentDashboard() {
 
   const fetchMyAthletes = async () => {
     try {
-      const response = await fetch('/api/dashboard/agent/athletes', {
+      const response = await fetch(`${API_URL}/api/dashboard/agent/athletes`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
+      if (!response.ok) throw new Error('Failed to fetch');
       const data = await response.json();
-      setMyAthletes(data);
+      setMyAthletes(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching my athletes:', error);
+      setMyAthletes([]);
     }
   };
 
   const fetchAgentRequests = async () => {
     try {
-      const response = await fetch('/api/dashboard/agent/requests', {
+      const response = await fetch(`${API_URL}/api/dashboard/agent/requests`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
+      if (!response.ok) throw new Error('Failed to fetch');
       const data = await response.json();
-      setAgentRequests(data);
+      setAgentRequests(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching agent requests:', error);
+      setAgentRequests([]);
     }
   };
 
   const searchAthletes = async () => {
     try {
-      const response = await fetch(`/api/dashboard/agent/search-athletes?search=${searchTerm}`, {
+      const response = await fetch(`${API_URL}/api/dashboard/agent/search-athletes?search=${searchTerm}`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
+      if (!response.ok) throw new Error('Failed to search');
       const data = await response.json();
-      setSearchResults(data);
+      setSearchResults(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error searching athletes:', error);
+      setSearchResults([]);
     }
   };
 
   const sendAgentRequest = async () => {
+    if (!selectedAthlete) return;
     try {
-      await fetch('/api/dashboard/agent/send-request', {
+      const response = await fetch(`${API_URL}/api/dashboard/agent/send-request`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -72,11 +81,13 @@ export default function AgentDashboard() {
           message: offerMessage
         })
       });
+      if (!response.ok) throw new Error('Failed to send request');
       alert('Agent request sent successfully');
       setOfferMessage('');
       setSelectedAthlete(null);
     } catch (error) {
       console.error('Error sending agent request:', error);
+      alert('Failed to send agent request');
     }
   };
 
