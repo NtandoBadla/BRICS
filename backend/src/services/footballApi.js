@@ -1,12 +1,22 @@
 const FOOTBALL_API_BASE = 'https://v3.football.api-sports.io';
-const API_KEY = process.env.FOOTBALL_API_KEY || process.env.API_FOOTBALL_KEY || 'XxXxXxXxXxXxXxXxXxXxXxXx';
+const API_KEY = process.env.FOOTBALL_API_KEY || process.env.API_FOOTBALL_KEY;
 
 // Log API key status on module load
-console.log('Football API Key Status:', API_KEY && API_KEY !== 'XxXxXxXxXxXxXxXxXxXxXxXx' ? 'Valid key loaded' : 'No valid key found');
-console.log('API Key (first 8 chars):', API_KEY ? API_KEY.substring(0, 8) + '...' : 'None');
+if (!API_KEY) {
+  console.warn('⚠️ Football API Key Status: No API key found');
+  console.warn('⚠️ Set FOOTBALL_API_KEY or API_FOOTBALL_KEY environment variable');
+  console.warn('⚠️ Fallback mock data will be used for all football API requests');
+} else {
+  console.log('✅ Football API Key Status: Valid key loaded');
+  console.log('API Key (first 8 chars):', API_KEY.substring(0, 8) + '...');
+}
 
 // Helper function to make API requests with multiple authentication methods
 const makeAPIRequest = async (url, retries = 1) => {
+  if (!API_KEY) {
+    throw new Error('No Football API key configured');
+  }
+  
   try {
     console.log(`Making API request to: ${url}`);
     
