@@ -51,9 +51,13 @@ const updateUserRole = async (req, res) => {
     const { id } = req.params;
     const { role } = req.body;
     
+    if (!role) {
+      return res.status(400).json({ error: 'Role is required' });
+    }
+    
     // Get current user data for email notification
     const currentUser = await prisma.user.findUnique({
-      where: { id }, // Use string ID directly, not parseInt
+      where: { id },
       select: { email: true, firstName: true, lastName: true, role: true }
     });
     
@@ -62,7 +66,7 @@ const updateUserRole = async (req, res) => {
     }
     
     const user = await prisma.user.update({
-      where: { id }, // Use string ID directly, not parseInt
+      where: { id },
       data: { role },
       select: { id: true, email: true, firstName: true, lastName: true, role: true, createdAt: true }
     });
