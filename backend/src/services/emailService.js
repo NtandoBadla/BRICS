@@ -1,10 +1,19 @@
 const prisma = require('../prisma');
+const emailjs = require('@emailjs/nodejs');
 
-// Email service configuration
-const EMAIL_ENABLED = process.env.EMAIL_SERVICE_ENABLED === 'true';
-const EMAIL_FROM = process.env.EMAIL_FROM || 'noreply@bifa.com';
+// EmailJS Configuration
+const EMAILJS_SERVICE_ID = process.env.EMAILJS_SERVICE_ID;
+const EMAILJS_TEMPLATE_ID = process.env.EMAILJS_TEMPLATE_ID;
+const EMAILJS_PUBLIC_KEY = process.env.EMAILJS_PUBLIC_KEY;
+const EMAILJS_PRIVATE_KEY = process.env.EMAILJS_PRIVATE_KEY;
 
-console.log('Email Service:', EMAIL_ENABLED ? 'Enabled' : 'Using console logging (disabled for server environment)');
+const EMAIL_ENABLED = EMAILJS_SERVICE_ID && EMAILJS_PUBLIC_KEY && EMAILJS_PRIVATE_KEY;
+
+if (EMAIL_ENABLED) {
+  console.log('✅ Email Service: Enabled with EmailJS');
+} else {
+  console.log('⚠️ Email Service: Disabled (EmailJS credentials missing)');
+}
 
 const sendRoleUpdateEmail = async (userEmail, userName, oldRole, newRole) => {
   try {
@@ -34,10 +43,28 @@ const sendRoleUpdateEmail = async (userEmail, userName, oldRole, newRole) => {
       console.warn('⚠️ Could not create in-app notification:', dbError.message);
     }
 
-    // If email service is enabled, send actual email
+    // Send email via EmailJS
     if (EMAIL_ENABLED) {
-      // TODO: Integrate with SendGrid, AWS SES, or other email service
-      console.log(`📧 Email would be sent to ${userEmail}`);
+      try {
+        await emailjs.send(
+          EMAILJS_SERVICE_ID,
+          EMAILJS_TEMPLATE_ID,
+          {
+            to_email: userEmail,
+            to_name: userName,
+            old_role: oldRole,
+            new_role: newRole,
+            message: `Your role has been updated from ${oldRole} to ${newRole}. You can now access features and permissions associated with your new role.`
+          },
+          {
+            publicKey: EMAILJS_PUBLIC_KEY,
+            privateKey: EMAILJS_PRIVATE_KEY
+          }
+        );
+        console.log(`✅ Email sent to ${userEmail} via EmailJS`);
+      } catch (emailError) {
+        console.error('❌ EmailJS send failed:', emailError.message);
+      }
     }
 
     console.log(`✅ Role update notification processed for ${userEmail}: ${oldRole} → ${newRole}`);

@@ -1,0 +1,80 @@
+// Add these models to your schema.prisma file after the Athlete model
+
+model Agent {
+  id          String    @id @default(uuid())
+  email       String    @unique
+  password    String
+  firstName   String
+  lastName    String
+  licenseNumber String? @unique
+  agency      String?
+  phone       String?
+  photoUrl    String?
+  
+  // Relations
+  athletes    Athlete[]
+  agentRequests AgentRequest[]
+  sentMessages  Message[] @relation("MessageSender")
+  receivedMessages Message[] @relation("MessageReceiver")
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Coach {
+  id          String    @id @default(uuid())
+  email       String    @unique
+  password    String
+  firstName   String
+  lastName    String
+  teamId      String?
+  team        Team?     @relation(fields: [teamId], references: [id])
+  licenseNumber String? @unique
+  specialization String?
+  phone       String?
+  photoUrl    String?
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@index([teamId])
+}
+
+model Message {
+  id          String    @id @default(uuid())
+  senderId    String
+  sender      Agent     @relation("MessageSender", fields: [senderId], references: [id])
+  receiverId  String
+  receiver    Agent     @relation("MessageReceiver", fields: [receiverId], references: [id])
+  subject     String?
+  content     String
+  isRead      Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  
+  @@index([senderId])
+  @@index([receiverId])
+}
+
+// Update Athlete model - change agentId relation from User to Agent
+// Change this line:
+//   agentId     String?
+//   agent       User?     @relation("AthleteAgent", fields: [agentId], references: [id])
+// To:
+//   agentId     String?
+//   agent       Agent?    @relation(fields: [agentId], references: [id])
+
+// Update AgentRequest model - change agent relation from User to Agent
+// Change this line:
+//   agentId     String
+//   agent       User      @relation("AgentRequestSender", fields: [agentId], references: [id])
+// To:
+//   agentId     String
+//   agent       Agent     @relation(fields: [agentId], references: [id])
+
+// Add to Team model:
+//   coaches     Coach[]
+
+// Update User model - remove these relations:
+//   representedAthletes Athlete[] @relation("AthleteAgent")
+//   sentAgentRequests AgentRequest[] @relation("AgentRequestSender")
+//   receivedAgentRequests AgentRequest[] @relation("AgentRequestReceiver")

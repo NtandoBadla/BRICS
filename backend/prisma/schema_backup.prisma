@@ -54,6 +54,9 @@ model User {
   approvedDocuments Document[] @relation("DocumentApprover")
   auditLogs         AuditLog[]
   nationalSquads    NationalSquad[]
+  representedAthletes Athlete[] @relation("AthleteAgent")
+  sentAgentRequests AgentRequest[] @relation("AgentRequestSender")
+  receivedAgentRequests AgentRequest[] @relation("AgentRequestReceiver")
   sentNotifications Notification[] @relation("NotificationSender")
   receivedNotifications Notification[] @relation("NotificationReceiver")
   
@@ -69,7 +72,6 @@ model Team {
   logoUrl     String?
   users       User[]
   athletes    Athlete[]
-  coaches     Coach[]
   
   // Relations
   homeMatches    Match[] @relation("HomeMatches")
@@ -84,8 +86,6 @@ model Team {
 
 model Athlete {
   id          String    @id @default(uuid())
-  email       String?   @unique
-  password    String?
   firstName   String
   lastName    String
   dateOfBirth DateTime
@@ -94,7 +94,7 @@ model Athlete {
   team        Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
   photoUrl    String?
   agentId     String?
-  agent       Agent?    @relation(fields: [agentId], references: [id])
+  agent       User?     @relation("AthleteAgent", fields: [agentId], references: [id])
   
   // Relations
   matchEvents        MatchEvent[]
@@ -109,61 +109,6 @@ model Athlete {
 
   @@index([teamId])
   @@index([agentId])
-}
-
-model Agent {
-  id          String    @id @default(uuid())
-  email       String    @unique
-  password    String
-  firstName   String
-  lastName    String
-  licenseNumber String? @unique
-  agency      String?
-  phone       String?
-  photoUrl    String?
-  
-  // Relations
-  athletes    Athlete[]
-  agentRequests AgentRequest[]
-  sentMessages  Message[] @relation("MessageSender")
-  receivedMessages Message[] @relation("MessageReceiver")
-  
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-}
-
-model Coach {
-  id          String    @id @default(uuid())
-  email       String    @unique
-  password    String
-  firstName   String
-  lastName    String
-  teamId      String?
-  team        Team?     @relation(fields: [teamId], references: [id])
-  licenseNumber String? @unique
-  specialization String?
-  phone       String?
-  photoUrl    String?
-  
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
-  @@index([teamId])
-}
-
-model Message {
-  id          String    @id @default(uuid())
-  senderId    String
-  sender      Agent     @relation("MessageSender", fields: [senderId], references: [id])
-  receiverId  String
-  receiver    Agent     @relation("MessageReceiver", fields: [receiverId], references: [id])
-  subject     String?
-  content     String
-  isRead      Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  
-  @@index([senderId])
-  @@index([receiverId])
 }
 
 // Feature 1: Referee Registry + Disciplinary Reporting
@@ -599,7 +544,9 @@ model AgentRequest {
   athleteId   String
   athlete     Athlete           @relation(fields: [athleteId], references: [id])
   agentId     String
-  agent       Agent             @relation(fields: [agentId], references: [id])
+  agent       User              @relation("AgentRequestSender", fields: [agentId], references: [id])
+  currentAgentId String?
+  currentAgent User?            @relation("AgentRequestReceiver", fields: [currentAgentId], references: [id])
   message     String?
   status      RequestStatus     @default(PENDING)
   createdAt   DateTime          @default(now())
@@ -640,5 +587,4 @@ enum NotificationType {
   AGENT_OFFER
   TEAM_ASSIGNMENT
   GENERAL
-  ROLE_CHANGE
 }
