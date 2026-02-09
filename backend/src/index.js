@@ -47,6 +47,7 @@ const cmsRoutes = require('./routes/cmsRoutes');
 const competitionRoutes = require('./routes/competitionRoutes');
 const userRoutes = require('./routes/userRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
+const matchRoutes = require('./routes/matchRoutes');
 const { footballApi } = require('./services/footballApi');
 
 // CORS configuration
@@ -617,12 +618,15 @@ app.get(['/api/competitions/matches', '/api/matches', '/api/fixtures'], async (r
 // Feature Routes
 // Note: We mount these BEFORE the safe endpoints so specific routes (like /api/football/sync) take precedence
 app.use('/api/referees', refereeRoutes);
+console.log('✅ Mounted /api/referees routes');
 app.use('/api/governance', governanceRoutes);
 app.use('/api/football', footballRoutes);
 app.use('/api/cms', cmsRoutes);
 app.use('/api', competitionRoutes);
 app.use('/api', userRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/matches', matchRoutes);
+console.log('✅ Mounted /api/matches routes');
 
 // Dashboard endpoints
 app.get(['/api/admin/stats', '/api/admin/dashboard'], auth, requireRole(['ADMIN', 'SECRETARIAT', 'FEDERATION_OFFICIAL']), async (req, res) => {

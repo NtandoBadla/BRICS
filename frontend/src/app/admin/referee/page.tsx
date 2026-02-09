@@ -1,54 +1,42 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useRouter } from 'next/navigation';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Plus, Edit, Trash2, Search, User, Award } from 'lucide-react';
+import { ArrowLeft, Plus, Edit, Trash2, Search, User, Award, Mail, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 export default function RefereeAdminPage() {
+  const router = useRouter();
   const [referees, setReferees] = useState([]);
-  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const [editingReferee, setEditingReferee] = useState(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchData();
+    fetchReferees();
   }, []);
 
-  const fetchData = async () => {
+  const fetchReferees = async () => {
     try {
       const token = localStorage.getItem('token');
-      const headers = { 
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      };
+      const response = await fetch(`${API_URL}/api/referees`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
 
-      const [refereesRes, usersRes] = await Promise.all([
-        fetch(`${API_URL}/api/referees`, { headers }),
-        fetch(`${API_URL}/api/users?role=REFEREE`, { headers }).catch(() => ({ ok: false }))
-      ]);
-
-      if (refereesRes.ok) {
-        const refereesData = await refereesRes.json();
-        setReferees(refereesData);
+      if (response.ok) {
+        const data = await response.json();
+        setReferees(data);
       }
-
-      // Mock users data for referee role selection
-      setUsers([
-        { id: '1', firstName: 'John', lastName: 'Doe', email: 'john.referee@bifa.com', role: 'REFEREE' },
-        { id: '2', firstName: 'Jane', lastName: 'Smith', email: 'jane.referee@bifa.com', role: 'REFEREE' }
-      ]);
     } catch (error) {
       toast({
         title: "Error",
@@ -77,9 +65,8 @@ export default function RefereeAdminPage() {
           title: "Success",
           description: "Referee created successfully"
         });
-        setIsDialogOpen(false);
-        setEditingReferee(null);
-        fetchData();
+        setShowForm(false);
+        fetchReferees();
       } else {
         const error = await response.json();
         throw new Error(error.error || 'Failed to create referee');
@@ -110,9 +97,9 @@ export default function RefereeAdminPage() {
           title: "Success",
           description: "Referee updated successfully"
         });
-        setIsDialogOpen(false);
+        setShowForm(false);
         setEditingReferee(null);
-        fetchData();
+        fetchReferees();
       }
     } catch (error) {
       toast({
@@ -138,7 +125,7 @@ export default function RefereeAdminPage() {
           title: "Success",
           description: "Referee deleted successfully"
         });
-        fetchData();
+        fetchReferees();
       }
     } catch (error) {
       toast({
@@ -149,81 +136,156 @@ export default function RefereeAdminPage() {
     }
   };
 
-  const RefereeForm = ({ onSubmit, initialData }) => {
+  const RefereeForm = ({ onSubmit, initialData, onCancel }) => {
     const [formData, setFormData] = useState({
-      userId: initialData?.userId || '',
+      firstName: initialData?.user?.firstName || '',
+      lastName: initialData?.user?.lastName || '',
+      email: initialData?.user?.email || '',
       licenseNumber: initialData?.licenseNumber || '',
       certification: initialData?.certification || '',
-      experience: initialData?.experience || 0,
-      availability: initialData?.availability || {}
+      experience: initialData?.experience || 0
     });
+    const [submitting, setSubmitting] = useState(false);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
       e.preventDefault();
-      if (initialData) {
-        onSubmit(initialData.id, formData);
-      } else {
-        onSubmit(formData);
+      setSubmitting(true);
+      try {
+        if (initialData) {
+          await onSubmit(initialData.id, formData);
+        } else {
+          await onSubmit(formData);
+        }
+      } finally {
+        setSubmitting(false);
       }
     };
 
     return (
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {!initialData && (
-          <div>
-            <Label htmlFor="userId">Select User</Label>
-            <Select value={formData.userId} onValueChange={(value) => setFormData({ ...formData, userId: value })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a user with REFEREE role" />
-              </SelectTrigger>
-              <SelectContent>
-                {users.map((user) => (
-                  <SelectItem key={user.id} value={user.id}>
-                    {user.firstName} {user.lastName} ({user.email})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      <Card className="max-w-2xl mx-auto">
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={onCancel}>
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div>
+              <CardTitle>{initialData ? 'Edit Referee' : 'Add New Referee'}</CardTitle>
+              <CardDescription>Fill in the referee details below</CardDescription>
+            </div>
           </div>
-        )}
-        <div>
-          <Label htmlFor="licenseNumber">License Number</Label>
-          <Input
-            id="licenseNumber"
-            value={formData.licenseNumber}
-            onChange={(e) => setFormData({ ...formData, licenseNumber: e.target.value })}
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="certification">Certification</Label>
-          <Select value={formData.certification} onValueChange={(value) => setFormData({ ...formData, certification: value })}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="FIFA Level 1">FIFA Level 1</SelectItem>
-              <SelectItem value="FIFA Level 2">FIFA Level 2</SelectItem>
-              <SelectItem value="FIFA Level 3">FIFA Level 3</SelectItem>
-              <SelectItem value="National Level">National Level</SelectItem>
-              <SelectItem value="Regional Level">Regional Level</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label htmlFor="experience">Years of Experience</Label>
-          <Input
-            id="experience"
-            type="number"
-            value={formData.experience}
-            onChange={(e) => setFormData({ ...formData, experience: parseInt(e.target.value) || 0 })}
-            min="0"
-          />
-        </div>
-        <Button type="submit" className="w-full">
-          {initialData ? 'Update Referee' : 'Create Referee'}
-        </Button>
-      </form>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstName" className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  First Name
+                </Label>
+                <Input
+                  id="firstName"
+                  value={formData.firstName}
+                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                  placeholder="Enter first name"
+                  required
+                  disabled={!!initialData}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lastName" className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  Last Name
+                </Label>
+                <Input
+                  id="lastName"
+                  value={formData.lastName}
+                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                  placeholder="Enter last name"
+                  required
+                  disabled={!!initialData}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email" className="flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                Email Address
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                placeholder="referee@example.com"
+                required
+                disabled={!!initialData}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="licenseNumber" className="flex items-center gap-2">
+                <Shield className="h-4 w-4" />
+                License Number
+              </Label>
+              <Input
+                id="licenseNumber"
+                value={formData.licenseNumber}
+                onChange={(e) => setFormData({ ...formData, licenseNumber: e.target.value })}
+                placeholder="REF-2024-001"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="certification" className="flex items-center gap-2">
+                <Award className="h-4 w-4" />
+                Certification Level
+              </Label>
+              <Select value={formData.certification} onValueChange={(value) => setFormData({ ...formData, certification: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select certification level" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="FIFA Level 1">FIFA Level 1</SelectItem>
+                  <SelectItem value="FIFA Level 2">FIFA Level 2</SelectItem>
+                  <SelectItem value="FIFA Level 3">FIFA Level 3</SelectItem>
+                  <SelectItem value="National Level">National Level</SelectItem>
+                  <SelectItem value="Regional Level">Regional Level</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="experience">Years of Experience</Label>
+              <Input
+                id="experience"
+                type="number"
+                value={formData.experience}
+                onChange={(e) => setFormData({ ...formData, experience: parseInt(e.target.value) || 0 })}
+                placeholder="0"
+                min="0"
+              />
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button type="submit" className="flex-1" disabled={submitting}>
+                {submitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    {initialData ? 'Updating...' : 'Creating...'}
+                  </>
+                ) : (
+                  initialData ? 'Update Referee' : 'Create Referee'
+                )}
+              </Button>
+              <Button type="button" variant="outline" onClick={onCancel} disabled={submitting}>
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     );
   };
 
@@ -242,28 +304,38 @@ export default function RefereeAdminPage() {
     );
   }
 
+  if (showForm) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6">
+        <RefereeForm 
+          onSubmit={editingReferee ? handleUpdateReferee : handleCreateReferee} 
+          initialData={editingReferee}
+          onCancel={() => {
+            setShowForm(false);
+            setEditingReferee(null);
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Referee Registry</h1>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => setEditingReferee(null)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Referee
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>{editingReferee ? 'Edit Referee' : 'Add New Referee'}</DialogTitle>
-              </DialogHeader>
-              <RefereeForm 
-                onSubmit={editingReferee ? handleUpdateReferee : handleCreateReferee} 
-                initialData={editingReferee} 
-              />
-            </DialogContent>
-          </Dialog>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={() => router.push('/admin')}>
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold">Referee Registry</h1>
+              <p className="text-gray-600">Manage referee profiles and certifications</p>
+            </div>
+          </div>
+          <Button onClick={() => setShowForm(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Referee
+          </Button>
         </div>
 
         <Card className="mb-6">
@@ -324,7 +396,7 @@ export default function RefereeAdminPage() {
                       size="sm"
                       onClick={() => {
                         setEditingReferee(referee);
-                        setIsDialogOpen(true);
+                        setShowForm(true);
                       }}
                     >
                       <Edit className="h-4 w-4" />

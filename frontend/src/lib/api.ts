@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const API_URL = 'https://brics-platform.onrender.com';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://brics-backend.onrender.com';
 
 // Error types for better error handling
 export interface ApiError {
@@ -174,6 +174,10 @@ class ApiService {
   }
 
   async updateUserRole(token: string, userId: string, role: string) {
+    console.log('Updating role:', { userId, role }); // Debug log
+    if (!role || role === '') {
+      throw new Error('Role cannot be empty');
+    }
     return this.requestWithRetry<any>(`/api/users/${userId}/role`, {
       method: 'PUT',
       headers: { 'Authorization': `Bearer ${token}` },

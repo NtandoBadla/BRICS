@@ -47,6 +47,9 @@ export default function AdminPage() {
         }
       } catch (error) {
         console.error('Error fetching stats:', error);
+        console.error('Error details:', JSON.stringify(error, null, 2));
+        // Don't fail silently - set stats to 0 on error
+        setStats(prev => ({ ...prev, totalUsers: 0 }));
       } finally {
         setStats(prev => ({ ...prev, loading: false }));
       }

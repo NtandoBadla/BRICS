@@ -157,7 +157,13 @@ export default function UserManagementPage() {
                                                         <select
                                                             className="border rounded p-1 text-sm bg-white"
                                                             value={user.role}
-                                                            onChange={(e) => handleRoleUpdate(user.id, e.target.value)}
+                                                            onChange={(e) => {
+                                                                const newRole = e.target.value;
+                                                                console.log('Role change:', { userId: user.id, oldRole: user.role, newRole });
+                                                                if (newRole && newRole !== user.role) {
+                                                                    handleRoleUpdate(user.id, newRole);
+                                                                }
+                                                            }}
                                                             disabled={actionLoading === user.id}
                                                         >
                                                             {ROLES.map(role => (

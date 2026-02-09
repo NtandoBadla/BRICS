@@ -1,130 +1,306 @@
-import prisma from '../prisma.js';
+const prisma = require('../prisma');
+const bcrypt = require('bcryptjs');
 
 // Referee Management
-export const createReferee = async (req, res) => {
+const createReferee = async (req, res) => {
   try {
-    // TODO: Implement referee registration
-    res.status(501).json({ message: 'Not implemented yet' });
+    console.log('✅ Create referee endpoint hit');
+    const { firstName, lastName, email, licenseNumber, certification, experience } = req.body;
+
+    const hashedPassword = await bcrypt.hash(licenseNumber, 10);
+
+    const user = await prisma.user.create({
+      data: {
+        email,
+        firstName,
+        lastName,
+        password: hashedPassword,
+        role: 'REFEREE'
+      }
+    });
+
+    const referee = await prisma.referee.create({
+      data: {
+        userId: user.id,
+        licenseNumber,
+        certification,
+        experience: parseInt(experience) || 0,
+        availability: {}
+      },
+      include: { user: true }
+    });
+
+    console.log('✅ Referee created:', referee.id);
+    res.status(201).json(referee);
+  } catch (error) {
+    console.error('❌ Create referee error:', error.message);
+    if (error.code === 'P2002') {
+      return res.status(400).json({ error: 'Email already exists' });
+    }
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const getReferees = async (req, res) => {
+  try {
+    const referees = await prisma.referee.findMany({
+      include: {
+        user: { select: { id: true, firstName: true, lastName: true, email: true } }
+      },
+      orderBy: { createdAt: 'desc' }
+    }).catch(() => []);
+    
+    console.log(`✅ Found ${referees.length} referees`);
+    res.json(referees || []);
+  } catch (error) {
+    console.error('Get referees error:', error);
+    res.json([]);
+  }
+};
+
+const getRefereeById = async (req, res) => {
+  try {
+    const referee = await prisma.referee.findUnique({
+      where: { id: req.params.id },
+      include: { user: true, assignments: { include: { match: true } }, reports: true }
+    });
+    if (!referee) return res.status(404).json({ error: 'Referee not found' });
+    res.json(referee);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-export const getReferees = async (req, res) => {
+const updateReferee = async (req, res) => {
   try {
-    // TODO: Implement get all referees
-    res.status(501).json({ message: 'Not implemented yet' });
+    const { licenseNumber, certification, experience, availability } = req.body;
+    const referee = await prisma.referee.update({
+      where: { id: req.params.id },
+      data: { licenseNumber, certification, experience: parseInt(experience), availability },
+      include: { user: true }
+    });
+    res.json(referee);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-export const getRefereeById = async (req, res) => {
+const deleteReferee = async (req, res) => {
   try {
-    // TODO: Implement get referee by ID
-    res.status(501).json({ message: 'Not implemented yet' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-export const updateReferee = async (req, res) => {
-  try {
-    // TODO: Implement update referee
-    res.status(501).json({ message: 'Not implemented yet' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-export const deleteReferee = async (req, res) => {
-  try {
-    // TODO: Implement delete referee
-    res.status(501).json({ message: 'Not implemented yet' });
+    await prisma.referee.delete({ where: { id: req.params.id } });
+    res.json({ message: 'Referee deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
 // Match Assignments
-export const getRefereeAssignments = async (req, res) => {
+const getRefereeAssignments = async (req, res) => {
   try {
-    // TODO: Implement get referee assignments
-    res.status(501).json({ message: 'Not implemented yet' });
+    const assignments = await prisma.matchAssignment.findMany({
+      where: { refereeId: req.params.id },
+      include: { match: { include: { homeTeam: true, awayTeam: true, competition: true } } },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(assignments);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-export const createAssignment = async (req, res) => {
+const createAssignment = async (req, res) => {
   try {
-    // TODO: Implement create assignment
-    res.status(501).json({ message: 'Not implemented yet' });
+    const { matchId, refereeId, role } = req.body;
+    const assignment = await prisma.matchAssignment.create({
+      data: { matchId, refereeId, role, status: 'PENDING' },
+      include: { match: true, referee: { include: { user: true } } }
+    });
+    res.status(201).json(assignment);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-export const acceptAssignment = async (req, res) => {
+const acceptAssignment = async (req, res) => {
   try {
-    // TODO: Implement accept assignment
-    res.status(501).json({ message: 'Not implemented yet' });
+    const assignment = await prisma.matchAssignment.update({
+      where: { id: req.params.id },
+      data: { status: 'ACCEPTED' },
+      include: { match: true }
+    });
+    res.json(assignment);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-export const declineAssignment = async (req, res) => {
+const declineAssignment = async (req, res) => {
   try {
-    // TODO: Implement decline assignment
-    res.status(501).json({ message: 'Not implemented yet' });
+    const assignment = await prisma.matchAssignment.update({
+      where: { id: req.params.id },
+      data: { status: 'DECLINED' },
+      include: { match: true }
+    });
+    res.json(assignment);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
 // Disciplinary Reports
-export const createDisciplinaryReport = async (req, res) => {
+const createDisciplinaryReport = async (req, res) => {
   try {
-    // TODO: Implement create disciplinary report
-    res.status(501).json({ message: 'Not implemented yet' });
+    const { matchId, refereeId, playerId, incident, action, minute, description } = req.body;
+    
+    // Validate match exists
+    const match = await prisma.match.findUnique({ where: { id: matchId } });
+    if (!match) {
+      return res.status(404).json({ error: 'Match not found' });
+    }
+    
+    // Validate referee exists
+    const referee = await prisma.referee.findUnique({ where: { id: refereeId } });
+    if (!referee) {
+      return res.status(404).json({ error: 'Referee not found' });
+    }
+    
+    const report = await prisma.disciplinaryReport.create({
+      data: {
+        matchId,
+        refereeId,
+        playerId: playerId || null,
+        incident,
+        action,
+        minute: minute ? parseInt(minute) : null,
+        description,
+        status: 'SUBMITTED'
+      },
+      include: { match: true, referee: { include: { user: true } }, player: true }
+    });
+    res.status(201).json(report);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-export const getDisciplinaryReports = async (req, res) => {
+const getDisciplinaryReports = async (req, res) => {
   try {
-    // TODO: Implement get disciplinary reports
-    res.status(501).json({ message: 'Not implemented yet' });
+    const { refereeId, status } = req.query;
+    const where = {};
+    if (refereeId) where.refereeId = refereeId;
+    if (status) where.status = status;
+
+    const reports = await prisma.disciplinaryReport.findMany({
+      where,
+      include: {
+        match: { include: { homeTeam: true, awayTeam: true } },
+        referee: { include: { user: true } },
+        player: true
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(reports);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-export const getDisciplinaryReportById = async (req, res) => {
+const getDisciplinaryReportById = async (req, res) => {
   try {
-    // TODO: Implement get disciplinary report by ID
-    res.status(501).json({ message: 'Not implemented yet' });
+    const report = await prisma.disciplinaryReport.findUnique({
+      where: { id: req.params.id },
+      include: {
+        match: { include: { homeTeam: true, awayTeam: true } },
+        referee: { include: { user: true } },
+        player: true
+      }
+    });
+    if (!report) return res.status(404).json({ error: 'Report not found' });
+    res.json(report);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-export const updateDisciplinaryReport = async (req, res) => {
+const updateDisciplinaryReport = async (req, res) => {
   try {
-    // TODO: Implement update disciplinary report
-    res.status(501).json({ message: 'Not implemented yet' });
+    const { incident, action, minute, description, status } = req.body;
+    const report = await prisma.disciplinaryReport.update({
+      where: { id: req.params.id },
+      data: { incident, action, minute: minute ? parseInt(minute) : null, description, status },
+      include: { match: true, referee: { include: { user: true } }, player: true }
+    });
+    res.json(report);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-export const approveDisciplinaryReport = async (req, res) => {
+const approveDisciplinaryReport = async (req, res) => {
   try {
-    // TODO: Implement approve disciplinary report
-    res.status(501).json({ message: 'Not implemented yet' });
+    const report = await prisma.disciplinaryReport.update({
+      where: { id: req.params.id },
+      data: { status: 'APPROVED' },
+      include: { match: true, referee: { include: { user: true } }, player: true }
+    });
+    res.json(report);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+};
+
+// Statistics
+const getDisciplinaryStatistics = async (req, res) => {
+  try {
+    const stats = await prisma.disciplinaryReport.groupBy({
+      by: ['action', 'status'],
+      _count: { id: true }
+    });
+    res.json(stats);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Change Password
+const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user.userId;
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const isValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isValid) return res.status(400).json({ error: 'Current password is incorrect' });
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword }
+    });
+
+    res.json({ message: 'Password changed successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports = {
+  createReferee,
+  getReferees,
+  getRefereeById,
+  updateReferee,
+  deleteReferee,
+  getRefereeAssignments,
+  createAssignment,
+  acceptAssignment,
+  declineAssignment,
+  createDisciplinaryReport,
+  getDisciplinaryReports,
+  getDisciplinaryReportById,
+  updateDisciplinaryReport,
+  approveDisciplinaryReport,
+  getDisciplinaryStatistics,
+  changePassword
 };

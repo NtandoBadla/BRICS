@@ -1,8 +1,8 @@
-import { PrismaClient } from '@prisma/client';
+const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
 
-export const createMatch = async (req, res) => {
+const createMatch = async (req, res) => {
   try {
     const { competitionId, homeTeamId, awayTeamId, venue, scheduledDate } = req.body;
 
@@ -28,7 +28,7 @@ export const createMatch = async (req, res) => {
   }
 };
 
-export const getMatches = async (req, res) => {
+const getMatches = async (req, res) => {
   try {
     const { status, upcoming } = req.query;
     
@@ -43,9 +43,10 @@ export const getMatches = async (req, res) => {
       include: {
         homeTeam: true,
         awayTeam: true,
-        competition: true
+        competition: true,
+        assignments: { include: { referee: { include: { user: true } } } }
       },
-      orderBy: { scheduledDate: 'asc' }
+      orderBy: { scheduledAt: 'asc' }
     });
 
     res.json(matches);
@@ -54,7 +55,7 @@ export const getMatches = async (req, res) => {
   }
 };
 
-export const getMatchById = async (req, res) => {
+const getMatchById = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -64,7 +65,7 @@ export const getMatchById = async (req, res) => {
         homeTeam: true,
         awayTeam: true,
         competition: true,
-        referee: true
+        assignments: { include: { referee: { include: { user: true } } } }
       }
     });
 
@@ -78,18 +79,17 @@ export const getMatchById = async (req, res) => {
   }
 };
 
-export const updateMatch = async (req, res) => {
+const updateMatch = async (req, res) => {
   try {
     const { id } = req.params;
-    const { homeScore, awayScore, status, refereeId } = req.body;
+    const { homeScore, awayScore, status } = req.body;
 
     const match = await prisma.match.update({
       where: { id },
       data: {
         homeScore,
         awayScore,
-        status,
-        refereeId
+        status
       },
       include: {
         homeTeam: true,
@@ -104,7 +104,33 @@ export const updateMatch = async (req, res) => {
   }
 };
 
-export const deleteMatch = async (req, res) => {
+const assignReferee = async (req, res) => {
+  try {
+    const { matchId, refereeId, role } = req.body;
+    const assignment = await prisma.matchAssignment.create({
+      data: { matchId, refereeId, role: role || 'MAIN_REFEREE', status: 'PENDING' },
+      include: { match: { include: { homeTeam: true, awayTeam: true } }, referee: { include: { user: true } } }
+    });
+    res.status(201).json(assignment);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const getMatchAssignments = async (req, res) => {
+  try {
+    const { matchId } = req.params;
+    const assignments = await prisma.matchAssignment.findMany({
+      where: { matchId },
+      include: { referee: { include: { user: true } } }
+    });
+    res.json(assignments);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const deleteMatch = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -116,4 +142,14 @@ export const deleteMatch = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+};
+
+module.exports = {
+  createMatch,
+  getMatches,
+  getMatchById,
+  updateMatch,
+  deleteMatch,
+  assignReferee,
+  getMatchAssignments
 };

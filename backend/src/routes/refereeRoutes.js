@@ -7,20 +7,43 @@ const {
   getRefereeById,
   updateReferee,
   deleteReferee,
+  getRefereeAssignments,
+  createAssignment,
+  acceptAssignment,
+  declineAssignment,
   createDisciplinaryReport,
-  getDisciplinaryReports
+  getDisciplinaryReports,
+  getDisciplinaryReportById,
+  updateDisciplinaryReport,
+  approveDisciplinaryReport,
+  getDisciplinaryStatistics,
+  changePassword
 } = require('../controllers/refereeController');
 
-// --- Referee Registry Routes (Day 8) ---
-router.post('/referees', auth, requireRole(['ADMIN']), createReferee);
-router.put('/referees/:id', auth, requireRole(['ADMIN']), updateReferee);
-router.delete('/referees/:id', auth, requireRole(['ADMIN']), deleteReferee);
-router.get('/referees', auth, getReferees);
-router.get('/referees/:id', auth, getRefereeById);
+console.log('✅ Referee routes loaded');
 
-// --- Disciplinary Reporting Routes (Day 9) ---
-router.post('/disciplinary-reports', auth, requireRole(['REFEREE']), createDisciplinaryReport);
-router.get('/disciplinary-reports', auth, getDisciplinaryReports);
+// Referee Registry Routes
+router.post('/', auth, requireRole(['ADMIN']), createReferee);
+router.get('/', auth, getReferees);
+router.get('/:id', auth, getRefereeById);
+router.put('/:id', auth, requireRole(['ADMIN', 'REFEREE']), updateReferee);
+router.delete('/:id', auth, requireRole(['ADMIN']), deleteReferee);
+router.put('/profile/change-password', auth, requireRole(['REFEREE']), changePassword);
 
+// Match Assignment Routes
+router.get('/:id/assignments', auth, getRefereeAssignments);
+router.post('/assignments', auth, requireRole(['ADMIN', 'SECRETARIAT']), createAssignment);
+router.put('/assignments/:id/accept', auth, requireRole(['REFEREE']), acceptAssignment);
+router.put('/assignments/:id/decline', auth, requireRole(['REFEREE']), declineAssignment);
+
+// Disciplinary Report Routes
+router.post('/reports', auth, requireRole(['REFEREE']), createDisciplinaryReport);
+router.get('/reports', auth, getDisciplinaryReports);
+router.get('/reports/:id', auth, getDisciplinaryReportById);
+router.put('/reports/:id', auth, requireRole(['REFEREE', 'SECRETARIAT']), updateDisciplinaryReport);
+router.put('/reports/:id/approve', auth, requireRole(['SECRETARIAT', 'ADMIN']), approveDisciplinaryReport);
+router.get('/reports/statistics', auth, requireRole(['FEDERATION_OFFICIAL', 'ADMIN']), getDisciplinaryStatistics);
+
+console.log('✅ Referee routes registered');
 
 module.exports = router;

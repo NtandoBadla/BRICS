@@ -25,43 +25,14 @@ const createCompetition = async (req, res) => {
 
 const getCompetitions = async (req, res) => {
   try {
-    const { country, season = '2023' } = req.query;
-
-    // Try to get from external API first
-    if (process.env.FOOTBALL_API_KEY && footballApi) {
-      try {
-        const data = await footballApi.getLeagues(country, season);
-        if (data && Array.isArray(data.response) && data.response.length > 0) {
-          const competitions = data.response.map(item => ({
-            id: item.league.id,
-            name: item.league.name,
-            type: item.league.type,
-            logo: item.league.logo,
-            country: item.country.name,
-            season: item.seasons.length ? item.seasons[item.seasons.length - 1].year.toString() : season
-          }));
-          return res.json(competitions);
-        }
-      } catch (apiError) {
-        console.error('API Error:', apiError.message);
-      }
-    }
-
-    // Fallback to database
+    // Always get from database first
     const competitions = await prisma.competition.findMany({
       orderBy: { createdAt: 'desc' }
     });
     
-    if (competitions.length > 0) {
-      return res.json(competitions);
-    }
-
-    // Mock data as last resort
-    res.json([
-      { id: 1, name: 'BRICS Championship 2024', type: 'Cup', country: 'International', season: '2024' },
-      { id: 2, name: 'Premier League', type: 'League', country: 'England', season: '2024' }
-    ]);
+    res.json(competitions);
   } catch (error) {
+    console.error('Error fetching competitions:', error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -172,55 +143,20 @@ const createMatch = async (req, res) => {
 
 const getMatches = async (req, res) => {
   try {
-    const { league = '39', season = '2023', date } = req.query;
-
-    // Try external API first
-    if (process.env.FOOTBALL_API_KEY && footballApi) {
-      try {
-        const data = await footballApi.getFixtures(league, season, date);
-        if (data && Array.isArray(data.response) && data.response.length > 0) {
-          const matches = data.response.map(item => ({
-            id: item.fixture?.id,
-            homeTeam: item.teams?.home?.name,
-            homeTeamLogo: item.teams?.home?.logo,
-            awayTeam: item.teams?.away?.name,
-            awayTeamLogo: item.teams?.away?.logo,
-            date: item.fixture?.date,
-            venue: item.fixture?.venue?.name,
-            status: item.fixture?.status?.short
-          }));
-          return res.json(matches);
-        }
-      } catch (apiError) {
-        console.error('API Error:', apiError.message);
-      }
-    }
-
-    // Fallback to database
+    // Always get from database
     const matches = await prisma.match.findMany({
       include: {
         homeTeam: true,
         awayTeam: true,
-        competition: true
+        competition: true,
+        assignments: { include: { referee: { include: { user: true } } } }
       },
       orderBy: { scheduledAt: 'desc' }
     });
     
-    if (matches.length > 0) {
-      return res.json(matches);
-    }
-
-    // Mock data
-    res.json([
-      {
-        id: 1,
-        homeTeam: 'Brazil',
-        awayTeam: 'Russia',
-        date: '2024-02-15',
-        venue: 'Stadium A'
-      }
-    ]);
+    res.json(matches);
   } catch (error) {
+    console.error('Error fetching matches:', error);
     res.status(500).json({ error: error.message });
   }
 };

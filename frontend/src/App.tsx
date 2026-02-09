@@ -2,13 +2,17 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trophy, Calendar, MapPin, Clock } from "lucide-react";
 import Footer from "@/components/layout/Footer";
+import { LanguageToggle } from "@/components/LanguageToggle";
 import { api, getErrorMessage } from "@/lib/api";
+import '@/i18n';
 
 export default function App() {
+  const { t } = useTranslation();
   const [matches, setMatches] = useState<any[]>([]);
   const [competitions, setCompetitions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,19 +81,20 @@ export default function App() {
             <span className="text-xl md:text-2xl font-bold text-gray-900">BIFA</span>
           </Link>
           <nav className="hidden md:flex gap-6">
-            <Link href="/" className="text-gray-700 hover:text-blue-600 font-medium">Home</Link>
-            <Link href="/news" className="text-gray-700 hover:text-blue-600 font-medium">News</Link>
-            <Link href="/teams" className="text-gray-700 hover:text-blue-600 font-medium">Teams</Link>
-            <Link href="/matches" className="text-gray-700 hover:text-blue-600 font-medium">Matches</Link>
+            <Link href="/" className="text-gray-700 hover:text-blue-600 font-medium">{t('nav.home')}</Link>
+            <Link href="/news" className="text-gray-700 hover:text-blue-600 font-medium">{t('nav.news')}</Link>
+            <Link href="/teams" className="text-gray-700 hover:text-blue-600 font-medium">{t('nav.teams')}</Link>
+            <Link href="/matches" className="text-gray-700 hover:text-blue-600 font-medium">{t('nav.matches')}</Link>
             <Link href="/competitions" className="text-gray-700 hover:text-blue-600 font-medium">Competitions</Link>
             <Link href="/leagues" className="text-gray-700 hover:text-blue-600 font-medium">Leagues</Link>
           </nav>
           <div className="flex gap-2 md:gap-3">
+            <LanguageToggle />
             <Button variant="outline" size="sm" className="text-xs md:text-sm" asChild>
-              <Link href="/login">Login</Link>
+              <Link href="/login">{t('common.login')}</Link>
             </Button>
             <Button size="sm" className="text-xs md:text-sm" asChild>
-              <Link href="/signup">Sign Up</Link>
+              <Link href="/signup">{t('auth.signUp')}</Link>
             </Button>
           </div>
         </div>
@@ -105,8 +110,8 @@ export default function App() {
       {/* Hero Section */}
       <section className="bg-blue-600 text-white py-8 md:py-16">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold mb-4">BRICS Football Association</h1>
-          <p className="text-lg md:text-xl text-blue-100">Your gateway to football competitions and matches</p>
+          <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold mb-4">{t('public.heroTitle')}</h1>
+          <p className="text-lg md:text-xl text-blue-100">{t('public.heroSubtitle')}</p>
         </div>
       </section>
 
@@ -114,7 +119,7 @@ export default function App() {
       <section className="py-12 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold">Upcoming Matches</h2>
+            <h2 className="text-3xl font-bold">{t('public.upcomingMatches')}</h2>
             <Button variant="outline" asChild>
               <Link href="/matches">View All</Link>
             </Button>
