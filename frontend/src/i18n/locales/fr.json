@@ -20,7 +20,8 @@
     "dashboard": "Tableau de bord",
     "settings": "Paramètres",
     "profile": "Profil",
-    "language": "Langue"
+    "language": "Langue",
+    "backToHome": "Retour à l'accueil"
   },
   "auth": {
     "signIn": "Se connecter",
@@ -31,8 +32,13 @@
     "noAccount": "Vous n'avez pas de compte?",
     "hasAccount": "Vous avez déjà un compte?",
     "invalidCredentials": "Email ou mot de passe invalide",
-    "welcomeBack": "Bienvenue sur BIFA",
-    "signInSubtitle": "Entrez vos identifiants pour accéder à votre compte"
+    "welcomeBack": "Bon retour",
+    "signInSubtitle": "Connectez-vous pour accéder à votre tableau de bord",
+    "emailAddress": "Adresse email",
+    "emailPlaceholder": "vous@exemple.com",
+    "passwordPlaceholder": "••••••••",
+    "signingIn": "Connexion en cours...",
+    "somethingWrong": "Une erreur s'est produite. Veuillez réessayer."
   },
   "nav": {
     "home": "Accueil",

@@ -6,6 +6,8 @@ import { useState } from "react";
 import { Eye, EyeOff, Lock, Mail, ArrowLeft, Loader2 } from "lucide-react";
 import * as v from 'valibot';
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslation } from 'react-i18next';
+import '@/i18n';
 
 const LoginSchema = v.object({
   email: v.pipe(v.string(), v.email('Please enter a valid email address')),
@@ -15,6 +17,7 @@ const LoginSchema = v.object({
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
+  const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{email?: string, password?: string, root?: string}>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -46,7 +49,6 @@ export default function LoginPage() {
     }
 
     try {
-      // 1. Call your real API here
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -55,49 +57,28 @@ export default function LoginPage() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || errorData.message || 'Invalid email or password');
+        throw new Error(errorData.error || errorData.message || t('auth.invalidCredentials'));
       }
 
       const responseData = await response.json();
-      
-      // Use the login function from AuthContext to handle state and redirection
       const token = responseData.token || 'mock-jwt-token';
       login(token, responseData.user);
       
-      // Redirect based on user role
       const userRole = responseData.user?.role;
       switch (userRole) {
-        case 'ADMIN':
-          router.push('/admin');
-          break;
-        case 'SECRETARIAT':
-          router.push('/secretariat');
-          break;
-        case 'REFEREE':
-          router.push('/referee');
-          break;
-        case 'TEAM_MANAGER':
-          router.push('/team-manager');
-          break;
-        case 'FEDERATION_OFFICIAL':
-          router.push('/federation');
-          break;
-        case 'AGENT':
-          router.push('/agent');
-          break;
-        case 'PLAYER':
-          router.push('/player');
-          break;
-        case 'COACH':
-          router.push('/coach');
-          break;
-        default:
-          router.push('/');
-          break;
+        case 'ADMIN': router.push('/admin'); break;
+        case 'SECRETARIAT': router.push('/secretariat'); break;
+        case 'REFEREE': router.push('/referee'); break;
+        case 'TEAM_MANAGER': router.push('/team-manager'); break;
+        case 'FEDERATION_OFFICIAL': router.push('/federation'); break;
+        case 'AGENT': router.push('/agent'); break;
+        case 'PLAYER': router.push('/player'); break;
+        case 'COACH': router.push('/coach'); break;
+        default: router.push('/'); break;
       }
     } catch (err) {
       setErrors({ 
-        root: err instanceof Error ? err.message : 'Something went wrong. Please try again.' 
+        root: err instanceof Error ? err.message : t('auth.somethingWrong')
       });
     } finally {
       setIsLoading(false);
@@ -109,10 +90,10 @@ export default function LoginPage() {
       <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
         <div className="mb-8">
           <Link href="/" className="inline-flex items-center text-sm text-gray-500 hover:text-blue-600 mb-6">
-            <ArrowLeft className="w-4 h-4 mr-1" /> Back to Home
+            <ArrowLeft className="w-4 h-4 mr-1" /> {t('common.backToHome')}
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">Welcome Back</h1>
-          <p className="text-gray-500 mt-2">Sign in to access your dashboard</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('auth.welcomeBack')}</h1>
+          <p className="text-gray-500 mt-2">{t('auth.signInSubtitle')}</p>
         </div>
 
         {errors.root && (
@@ -123,7 +104,7 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('auth.emailAddress')}</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Mail className="h-5 w-5 text-gray-400" />
@@ -132,14 +113,14 @@ export default function LoginPage() {
                 name="email"
                 type="email"
                 className={`block w-full pl-10 pr-3 py-2 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors`}
-                placeholder="you@example.com"
+                placeholder={t('auth.emailPlaceholder')}
               />
             </div>
             {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('common.password')}</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Lock className="h-5 w-5 text-gray-400" />
@@ -148,7 +129,7 @@ export default function LoginPage() {
                 name="password"
                 type={showPassword ? "text" : "password"}
                 className={`block w-full pl-10 pr-10 py-2 border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors`}
-                placeholder="••••••••"
+                placeholder={t('auth.passwordPlaceholder')}
               />
               <button
                 type="button"
@@ -164,10 +145,10 @@ export default function LoginPage() {
           <div className="flex items-center justify-between">
             <label className="flex items-center">
               <input type="checkbox" className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
-              <span className="ml-2 text-sm text-gray-600">Remember me</span>
+              <span className="ml-2 text-sm text-gray-600">{t('auth.rememberMe')}</span>
             </label>
             <Link href="/forgot-password" className="text-sm font-medium text-blue-600 hover:text-blue-500">
-              Forgot password?
+              {t('auth.forgotPassword')}
             </Link>
           </div>
 
@@ -179,19 +160,19 @@ export default function LoginPage() {
             {isLoading ? (
               <>
                 <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
-                Signing in...
+                {t('auth.signingIn')}
               </>
             ) : (
-              'Sign In'
+              t('auth.signIn')
             )}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
-            Don't have an account?{' '}
+            {t('auth.noAccount')}{' '}
             <Link href="/signup" className="font-medium text-blue-600 hover:text-blue-500">
-              Sign up
+              {t('auth.signUp')}
             </Link>
           </p>
         </div>
