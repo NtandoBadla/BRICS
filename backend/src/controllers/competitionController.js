@@ -140,7 +140,12 @@ const getCompetitionStandings = async (req, res) => {
 // Match Management
 const createMatch = async (req, res) => {
   try {
+    console.log('Creating match with data:', req.body);
     const { competitionId, homeTeamId, awayTeamId, scheduledAt, venue } = req.body;
+    
+    if (!competitionId || !homeTeamId || !awayTeamId || !scheduledAt || !venue) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
     
     const match = await prisma.match.create({
       data: {
@@ -157,8 +162,10 @@ const createMatch = async (req, res) => {
       }
     });
     
+    console.log('Match created successfully:', match.id);
     res.status(201).json(match);
   } catch (error) {
+    console.error('Error creating match:', error);
     res.status(500).json({ error: error.message });
   }
 };

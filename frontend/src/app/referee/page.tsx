@@ -123,7 +123,7 @@ export default function RefereeDashboard() {
         body: JSON.stringify({
           matchId: formData.get('matchId'),
           refereeId: refereeProfile.id,
-          playerId: formData.get('playerId') || null,
+          playerName: formData.get('playerName') || null,
           incident: formData.get('incident'),
           action: formData.get('action'),
           minute: formData.get('minute'),
@@ -297,8 +297,8 @@ export default function RefereeDashboard() {
                       </Select>
                     </div>
                     <div>
-                      <Label>Player ID (Optional)</Label>
-                      <Input name="playerId" placeholder="Enter player ID" />
+                      <Label>Player Name</Label>
+                      <Input name="playerName" placeholder="Enter player name" />
                     </div>
                     <div>
                       <Label>Incident</Label>

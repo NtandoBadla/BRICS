@@ -20,6 +20,7 @@ export default function SecretariatPage() {
   const [reports, setReports] = useState<any[]>([]);
   const [competitions, setCompetitions] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
+  const [assignments, setAssignments] = useState<any[]>([]);
   const [selectedMatch, setSelectedMatch] = useState(null);
   const [selectedReferee, setSelectedReferee] = useState('');
   const [showMatchForm, setShowMatchForm] = useState(false);
@@ -32,6 +33,7 @@ export default function SecretariatPage() {
     fetchReports();
     fetchCompetitions();
     fetchTeams();
+    fetchAssignments();
   }, []);
 
   const fetchMatches = async () => {
@@ -69,9 +71,22 @@ export default function SecretariatPage() {
 
   const fetchReports = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/referees/reports?status=SUBMITTED`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      console.log('Fetching reports from:', `${API_URL}/api/referees/reports`);
+      const token = localStorage.getItem('token');
+      console.log('Token exists:', !!token);
+      
+      const res = await fetch(`${API_URL}/api/referees/reports`, {
+        headers: { 'Authorization': `Bearer ${token}` }
       });
+      
+      console.log('Reports response status:', res.status);
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('Failed to fetch reports:', res.status, errorText);
+        setReports([]);
+        return;
+      }
       const data = await res.json();
       console.log('Fetched reports:', data);
       setReports(Array.isArray(data) ? data : []);
@@ -83,7 +98,7 @@ export default function SecretariatPage() {
 
   const fetchCompetitions = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/competitions?createdByRole=SECRETARIAT`, {
+      const res = await fetch(`${API_URL}/api/competitions`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       const data = await res.json();
@@ -108,6 +123,22 @@ export default function SecretariatPage() {
     }
   };
 
+  const fetchAssignments = async () => {
+    try {
+      console.log('Fetching assignments...');
+      const res = await fetch(`${API_URL}/api/referees/assignments/all`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      console.log('Assignments response status:', res.status);
+      const data = await res.json();
+      console.log('Assignments data:', data);
+      setAssignments(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error fetching assignments:', error);
+      setAssignments([]);
+    }
+  };
+
   const handleAssignReferee = async () => {
     if (!selectedMatch || !selectedReferee) return;
     try {
@@ -124,6 +155,7 @@ export default function SecretariatPage() {
         setSelectedMatch(null);
         setSelectedReferee('');
         fetchMatches();
+        fetchAssignments();
       }
     } catch (error) {
       console.error('Error assigning referee:', error);
@@ -193,7 +225,7 @@ export default function SecretariatPage() {
           homeTeamId: formData.homeTeamId,
           awayTeamId: formData.awayTeamId,
           venue: form.get('venue'),
-          scheduledDate: form.get('scheduledDate')
+          scheduledAt: form.get('scheduledDate')
         })
       });
       if (res.ok) {
@@ -334,13 +366,13 @@ export default function SecretariatPage() {
                   )}
                   <div className="space-y-3">
                     {competitions.length === 0 ? (
-                      <p className="text-gray-500 text-sm">No competitions created by secretariat yet</p>
+                      <p className="text-gray-500 text-sm">No competitions yet</p>
                     ) : (
                       competitions.map((comp) => (
                         <div key={comp.id} className="border rounded-lg p-4">
                           <h3 className="font-semibold">{comp.name}</h3>
                           <p className="text-sm text-gray-600">{comp.location} - {comp.format}</p>
-                          <p className="text-xs text-gray-500 mt-1">Created by: {comp.creator?.firstName} {comp.creator?.lastName}</p>
+                          {comp.creator && <p className="text-xs text-gray-500 mt-1">Created by: {comp.creator?.firstName} {comp.creator?.lastName}</p>}
                         </div>
                       ))
                     )}
@@ -472,6 +504,48 @@ export default function SecretariatPage() {
                   </Button>
                 </CardContent>
               </Card>
+
+              <Card className="mt-6">
+                <CardHeader>
+                  <CardTitle>Assignment Status</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {assignments.length === 0 ? (
+                      <p className="text-gray-500 text-sm">No assignments yet</p>
+                    ) : (
+                      assignments.map((assignment) => (
+                        <div key={assignment.id} className="border rounded-lg p-3 bg-white">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <p className="font-semibold text-sm">
+                                {assignment.match?.homeTeam?.name} vs {assignment.match?.awayTeam?.name}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                Referee: {assignment.referee?.user?.firstName} {assignment.referee?.user?.lastName}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                Role: {assignment.role}
+                              </p>
+                            </div>
+                            <span className={`text-xs px-2 py-1 rounded ${
+                              assignment.status === 'ACCEPTED' ? 'bg-green-100 text-green-800' :
+                              assignment.status === 'DECLINED' ? 'bg-red-100 text-red-800' :
+                              assignment.status === 'CONFIRMED' ? 'bg-blue-100 text-blue-800' :
+                              'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {assignment.status}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-600">
+                            {new Date(assignment.match?.scheduledAt).toLocaleString()} - {assignment.match?.venue}
+                          </p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="reports">
@@ -496,7 +570,8 @@ export default function SecretariatPage() {
                           <div className="text-sm space-y-1">
                             <p><strong>Incident:</strong> {report.incident}</p>
                             <p><strong>Action:</strong> {report.action}</p>
-                            {report.player && <p><strong>Player:</strong> {report.player.firstName} {report.player.lastName}</p>}
+                            {report.playerName && <p><strong>Player:</strong> {report.playerName}</p>}
+                            {!report.playerName && report.player && <p><strong>Player:</strong> {report.player.firstName} {report.player.lastName}</p>}
                             {report.minute && <p><strong>Minute:</strong> {report.minute}'</p>}
                             <p className="text-gray-600">{report.description}</p>
                           </div>

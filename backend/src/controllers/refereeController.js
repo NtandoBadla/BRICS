@@ -109,6 +109,24 @@ const getRefereeAssignments = async (req, res) => {
   }
 };
 
+const getAllAssignments = async (req, res) => {
+  try {
+    console.log('✅ Fetching all assignments');
+    const assignments = await prisma.matchAssignment.findMany({
+      include: {
+        match: { include: { homeTeam: true, awayTeam: true, competition: true } },
+        referee: { include: { user: true } }
+      },
+      orderBy: { createdAt: 'desc' }
+    }).catch(() => []);
+    console.log(`✅ Found ${assignments.length} assignments`);
+    res.json(assignments || []);
+  } catch (error) {
+    console.error('Error fetching assignments:', error);
+    res.json([]);
+  }
+};
+
 const createAssignment = async (req, res) => {
   try {
     const { matchId, refereeId, role } = req.body;
@@ -187,23 +205,20 @@ const declineAssignment = async (req, res) => {
 const createDisciplinaryReport = async (req, res) => {
   try {
     console.log('📝 Creating disciplinary report:', req.body);
-    const { matchId, refereeId, playerId, incident, action, minute, description } = req.body;
+    const { matchId, refereeId, playerId, playerName, incident, action, minute, description } = req.body;
     
-    // Validate match exists
     const match = await prisma.match.findUnique({ where: { id: matchId } });
     if (!match) {
       console.error('❌ Match not found:', matchId);
       return res.status(404).json({ error: 'Match not found' });
     }
     
-    // Validate referee exists
     const referee = await prisma.referee.findUnique({ where: { id: refereeId } });
     if (!referee) {
       console.error('❌ Referee not found:', refereeId);
       return res.status(404).json({ error: 'Referee not found' });
     }
     
-    // Validate player exists if playerId is provided
     if (playerId && playerId !== 'none') {
       const player = await prisma.athlete.findUnique({ 
         where: { id: playerId },
@@ -220,13 +235,14 @@ const createDisciplinaryReport = async (req, res) => {
         matchId,
         refereeId,
         playerId: (playerId && playerId !== 'none') ? playerId : null,
+        playerName: playerName || null,
         incident,
         action,
         minute: minute ? parseInt(minute) : null,
         description,
         status: 'SUBMITTED'
       },
-      include: { match: true, referee: { include: { user: true } }, player: true }
+      include: { match: { include: { homeTeam: true, awayTeam: true } }, referee: { include: { user: true } }, player: true }
     });
     console.log('✅ Report created:', report.id);
     res.status(201).json(report);
@@ -346,6 +362,7 @@ module.exports = {
   updateReferee,
   deleteReferee,
   getRefereeAssignments,
+  getAllAssignments,
   createAssignment,
   acceptAssignment,
   declineAssignment,

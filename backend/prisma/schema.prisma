@@ -202,6 +202,7 @@ model DisciplinaryReport {
   referee     Referee  @relation(fields: [refereeId], references: [id])
   playerId    String?
   player      Athlete? @relation(fields: [playerId], references: [id])
+  playerName  String?
   incident    String
   action      DisciplinaryAction
   minute      Int?
