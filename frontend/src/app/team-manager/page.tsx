@@ -6,9 +6,31 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Calendar, Shirt } from 'lucide-react';
+import { useState, useEffect } from 'react';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 export default function TeamManagerPage() {
   const { user, logout } = useAuth();
+  const [athletes, setAthletes] = useState([]);
+
+  useEffect(() => {
+    fetchAthletes();
+  }, []);
+
+  const fetchAthletes = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/athletes`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAthletes(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error('Error fetching athletes:', error);
+    }
+  };
 
   return (
     <ProtectedRoute allowedRoles={['TEAM_MANAGER', 'ADMIN']}>
@@ -33,7 +55,7 @@ export default function TeamManagerPage() {
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">24</div>
+                <div className="text-2xl font-bold">{athletes.length}</div>
               </CardContent>
             </Card>
 
@@ -58,7 +80,28 @@ export default function TeamManagerPage() {
             </Card>
           </div>
 
-          <CreatePlayerForm />
+          <CreatePlayerForm onPlayerCreated={fetchAthletes} />
+
+          <Card className="mt-8">
+            <CardHeader>
+              <CardTitle>Players</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {athletes.length === 0 ? (
+                <p className="text-gray-500 text-sm">No players yet</p>
+              ) : (
+                <div className="space-y-3">
+                  {athletes.map((athlete) => (
+                    <div key={athlete.id} className="border rounded-lg p-4">
+                      <h3 className="font-semibold">{athlete.firstName} {athlete.lastName}</h3>
+                      <p className="text-sm text-gray-600">{athlete.team?.name}</p>
+                      <p className="text-xs text-gray-500">{athlete.gender} - Born: {new Date(athlete.dateOfBirth).toLocaleDateString()}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </main>
       </div>
     </ProtectedRoute>

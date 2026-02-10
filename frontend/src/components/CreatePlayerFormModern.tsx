@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { UserPlus, Users, Mail, Calendar, User, Shield } from 'lucide-react';
 
-export default function CreatePlayerForm() {
+export default function CreatePlayerForm({ onPlayerCreated }) {
   const [players, setPlayers] = useState([]);
   const [agents, setAgents] = useState([]);
   const [formData, setFormData] = useState({
@@ -86,6 +86,7 @@ export default function CreatePlayerForm() {
         });
         setIsOpen(false);
         fetchPlayers();
+        if (onPlayerCreated) onPlayerCreated();
       } else {
         const error = await response.json();
         alert(`Error: ${error.error}`);
