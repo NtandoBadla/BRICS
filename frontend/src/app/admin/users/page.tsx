@@ -62,7 +62,9 @@ export default function UserManagementPage() {
                 return;
             }
 
-            await api.updateUserRole(token, userId, newRole);
+            console.log('Updating user role:', { userId, newRole });
+            const result = await api.updateUserRole(token, userId, newRole);
+            console.log('Role update result:', result);
 
             // Optimistic update
             setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
@@ -71,7 +73,7 @@ export default function UserManagementPage() {
             alert(`Role updated successfully! User will receive an email notification.`);
         } catch (err: any) {
             console.error('Role update error:', err);
-            const errorMsg = err.message || 'Failed to update role';
+            const errorMsg = err?.message || err?.error || JSON.stringify(err) || 'Failed to update role. Please check if backend is running.';
             alert('Failed to update role: ' + errorMsg);
             // Revert optimistic update by refetching
             fetchUsers();

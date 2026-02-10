@@ -1,0 +1,72 @@
+{
+  "common": {
+    "welcome": "Bem-vindo",
+    "login": "Entrar",
+    "logout": "Sair",
+    "register": "Registrar",
+    "email": "E-mail",
+    "password": "Senha",
+    "confirmPassword": "Confirmar Senha",
+    "submit": "Enviar",
+    "cancel": "Cancelar",
+    "save": "Salvar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "search": "Pesquisar",
+    "loading": "Carregando...",
+    "error": "Ocorreu um erro",
+    "success": "Sucesso",
+    "home": "Início",
+    "dashboard": "Painel",
+    "settings": "Configurações",
+    "profile": "Perfil",
+    "language": "Idioma"
+  },
+  "auth": {
+    "signIn": "Entrar",
+    "signUp": "Cadastrar",
+    "signOut": "Sair",
+    "forgotPassword": "Esqueceu a senha?",
+    "rememberMe": "Lembrar-me",
+    "noAccount": "Não tem uma conta?",
+    "hasAccount": "Já tem uma conta?",
+    "invalidCredentials": "E-mail ou senha inválidos",
+    "welcomeBack": "Bem-vindo de volta ao BIFA",
+    "signInSubtitle": "Digite suas credenciais para acessar sua conta"
+  },
+  "nav": {
+    "home": "Início",
+    "about": "Sobre",
+    "matches": "Partidas",
+    "teams": "Equipes",
+    "news": "Notícias",
+    "contact": "Contato"
+  },
+  "roles": {
+    "admin": "Administrador",
+    "secretariat": "Secretariado",
+    "referee": "Árbitro",
+    "teamManager": "Gerente de Equipe",
+    "federationOfficial": "Oficial da Federação"
+  },
+  "dashboard": {
+    "welcome": "Bem-vindo ao seu Painel",
+    "overview": "Visão Geral",
+    "recentActivity": "Atividade Recente",
+    "quickActions": "Ações Rápidas",
+    "statistics": "Estatísticas"
+  },
+  "federation": {
+    "name": "BIFA",
+    "fullName": "Federação de Futebol do Burundi",
+    "motto": "Unidade Através do Futebol",
+    "description": "O órgão oficial de governo do futebol no Burundi"
+  },
+  "public": {
+    "heroTitle": "Associação de Futebol BRICS",
+    "heroSubtitle": "Seu portal para competições e partidas de futebol",
+    "latestNews": "Últimas Notícias",
+    "upcomingMatches": "Próximas Partidas",
+    "leagueStandings": "Classificação da Liga"
+  }
+}

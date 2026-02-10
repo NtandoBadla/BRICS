@@ -13,7 +13,8 @@ const createCompetition = async (req, res) => {
         startDate: new Date(startDate),
         endDate: new Date(endDate),
         location,
-        format: format || 'LEAGUE'
+        format: format || 'LEAGUE',
+        createdBy: req.user.id
       }
     });
     
@@ -25,8 +26,29 @@ const createCompetition = async (req, res) => {
 
 const getCompetitions = async (req, res) => {
   try {
-    // Always get from database first
+    const { createdByRole } = req.query;
+    
+    let whereClause = {};
+    
+    // Filter by creator role if specified
+    if (createdByRole) {
+      whereClause.creator = {
+        role: createdByRole
+      };
+    }
+    
     const competitions = await prisma.competition.findMany({
+      where: whereClause,
+      include: {
+        creator: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            role: true
+          }
+        }
+      },
       orderBy: { createdAt: 'desc' }
     });
     

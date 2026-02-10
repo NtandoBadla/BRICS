@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const API_BASE_URL = 'https://brics-platform.onrender.com';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/competitions`, {
+    const { searchParams } = new URL(request.url);
+    const createdByRole = searchParams.get('createdByRole');
+    
+    const url = createdByRole 
+      ? `${API_BASE_URL}/api/competitions?createdByRole=${createdByRole}`
+      : `${API_BASE_URL}/api/competitions`;
+    
+    const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
       },

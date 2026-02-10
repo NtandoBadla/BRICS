@@ -1,0 +1,72 @@
+{
+  "common": {
+    "welcome": "Добро пожаловать",
+    "login": "Войти",
+    "logout": "Выйти",
+    "register": "Регистрация",
+    "email": "Электронная почта",
+    "password": "Пароль",
+    "confirmPassword": "Подтвердите пароль",
+    "submit": "Отправить",
+    "cancel": "Отмена",
+    "save": "Сохранить",
+    "delete": "Удалить",
+    "edit": "Редактировать",
+    "search": "Поиск",
+    "loading": "Загрузка...",
+    "error": "Произошла ошибка",
+    "success": "Успешно",
+    "home": "Главная",
+    "dashboard": "Панель управления",
+    "settings": "Настройки",
+    "profile": "Профиль",
+    "language": "Язык"
+  },
+  "auth": {
+    "signIn": "Войти",
+    "signUp": "Зарегистрироваться",
+    "signOut": "Выйти",
+    "forgotPassword": "Забыли пароль?",
+    "rememberMe": "Запомнить меня",
+    "noAccount": "Нет аккаунта?",
+    "hasAccount": "Уже есть аккаунт?",
+    "invalidCredentials": "Неверный email или пароль",
+    "welcomeBack": "Добро пожаловать в BIFA",
+    "signInSubtitle": "Введите свои учетные данные для доступа к аккаунту"
+  },
+  "nav": {
+    "home": "Главная",
+    "about": "О нас",
+    "matches": "Матчи",
+    "teams": "Команды",
+    "news": "Новости",
+    "contact": "Контакты"
+  },
+  "roles": {
+    "admin": "Администратор",
+    "secretariat": "Секретариат",
+    "referee": "Судья",
+    "teamManager": "Менеджер команды",
+    "federationOfficial": "Официальное лицо федерации"
+  },
+  "dashboard": {
+    "welcome": "Добро пожаловать в вашу панель управления",
+    "overview": "Обзор",
+    "recentActivity": "Недавняя активность",
+    "quickActions": "Быстрые действия",
+    "statistics": "Статистика"
+  },
+  "federation": {
+    "name": "BIFA",
+    "fullName": "Футбольная федерация Бурунди",
+    "motto": "Единство через футбол",
+    "description": "Официальный руководящий орган футбола в Бурунди"
+  },
+  "public": {
+    "heroTitle": "Футбольная ассоциация БРИКС",
+    "heroSubtitle": "Ваш портал к футбольным соревнованиям и матчам",
+    "latestNews": "Последние новости",
+    "upcomingMatches": "Предстоящие матчи",
+    "leagueStandings": "Турнирная таблица"
+  }
+}

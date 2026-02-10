@@ -39,6 +39,7 @@ if (!process.env.FOOTBALL_API_KEY && !process.env.API_FOOTBALL_KEY) {
 }
 
 const { sendRoleUpdateEmail } = require('./services/emailService');
+const { sendMatchAssignmentEmail } = require('./services/emailService');
 const { auth, requireRole } = require('./middleware/auth');
 const refereeRoutes = require('./routes/refereeRoutes');
 const governanceRoutes = require('./routes/governanceRoutes');
@@ -48,6 +49,8 @@ const competitionRoutes = require('./routes/competitionRoutes');
 const userRoutes = require('./routes/userRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const matchRoutes = require('./routes/matchRoutes');
+const matchReportRoutes = require('./routes/matchReportRoutes');
+const seedRoutes = require('./routes/seedRoutes');
 const { footballApi } = require('./services/footballApi');
 
 // CORS configuration
@@ -86,6 +89,40 @@ app.get('/', async (req, res) => {
     timestamp: new Date().toISOString(),
     features: ['CMS', 'Governance', 'Referee Registry', 'Disciplinary Reports']
   });
+});
+
+// Test email endpoint
+app.get('/api/test-email', async (req, res) => {
+  try {
+    console.log('🧪 Testing match assignment email...');
+    const testEmail = req.query.email || 'test@example.com';
+    
+    const result = await sendMatchAssignmentEmail(
+      testEmail,
+      'John Doe',
+      {
+        homeTeam: 'Manchester United',
+        awayTeam: 'Liverpool',
+        date: '2024-03-15',
+        time: '15:00',
+        venue: 'Old Trafford',
+        role: 'MAIN_REFEREE'
+      }
+    );
+    
+    console.log('✅ Test result:', result);
+    res.json({ 
+      message: 'Test email sent', 
+      result,
+      sentTo: testEmail
+    });
+  } catch (error) {
+    console.error('❌ Test failed:', error);
+    res.status(500).json({ 
+      error: error.message,
+      details: error
+    });
+  }
 });
 
 // Helper to determine redirect URL based on role
@@ -500,121 +537,6 @@ app.get(['/api/cms/news', '/api/news'], async (req, res) => {
   }
 });
 
-// Competitions endpoint
-// Handles /api/competitions and /api/leagues
-app.get(['/api/competitions', '/api/leagues'], async (req, res) => {
-  try {
-    const { country, season = '2023' } = req.query;
-
-    // If API key is present, try to fetch real data
-    if (process.env.FOOTBALL_API_KEY || process.env.API_FOOTBALL_KEY) {
-      try {
-        console.log(`Fetching competitions for country: ${country}, season: ${season}`);
-        const data = await footballApi.getLeagues(country, season);
-
-        if (data && Array.isArray(data.response) && data.response.length > 0) {
-          const competitions = data.response.map(item => ({
-            id: item.league.id,
-            name: item.league.name,
-            type: item.league.type,
-            logo: item.league.logo,
-            country: item.country.name,
-            season: item.seasons.length ? item.seasons[item.seasons.length - 1].year.toString() : season
-          }));
-          console.log(`✅ Returning ${competitions.length} real competitions`);
-          return res.json(competitions);
-        }
-      } catch (apiError) {
-        console.error('API Fetch Error (Competitions):', apiError.message);
-      }
-    }
-
-    // Fallback Mock Data
-    console.log('🔄 Returning mock competitions data');
-    res.json([
-      { id: 1, name: 'BRICS Championship 2024', type: 'Cup', logo: 'https://placehold.co/40x40?text=BC', country: 'International', season: '2024' },
-      { id: 2, name: 'Premier League', type: 'League', logo: 'https://placehold.co/40x40?text=PL', country: 'England', season: '2024' },
-      { id: 3, name: 'La Liga', type: 'League', logo: 'https://placehold.co/40x40?text=LL', country: 'Spain', season: '2024' },
-      { id: 4, name: 'Serie A', type: 'League', logo: 'https://placehold.co/40x40?text=SA', country: 'Italy', season: '2024' },
-      { id: 5, name: 'Bundesliga', type: 'League', logo: 'https://placehold.co/40x40?text=BL', country: 'Germany', season: '2024' }
-    ]);
-  } catch (error) {
-    console.error('Error fetching competitions:', error);
-    // On error, return mock data
-    res.json([
-      { id: 1, name: 'BRICS Cup 2024', type: 'Cup', logo: 'https://placehold.co/40x40?text=BC', country: 'International', season: '2024' }
-    ]);
-  }
-});
-
-// Public Matches/Fixtures Endpoint (with aliases)
-app.get(['/api/competitions/matches', '/api/matches', '/api/fixtures'], async (req, res) => {
-  try {
-    // Default to Premier League (39) and 2023 season if parameters are missing
-    const { league = '39', season = '2023', date } = req.query;
-
-    // If API key is present, try to fetch real fixtures
-    if (process.env.FOOTBALL_API_KEY || process.env.API_FOOTBALL_KEY) {
-      if (footballApi && footballApi.getFixtures) {
-        try {
-          // Pass parameters correctly as strings/numbers, not objects
-          const data = await footballApi.getFixtures(league, season, date);
-
-          // Handle API-Football structure (response property)
-          if (data && Array.isArray(data.response) && data.response.length > 0) {
-            const matches = data.response.map(item => ({
-              id: item.fixture?.id,
-              homeTeam: item.teams?.home?.name,
-              homeTeamLogo: item.teams?.home?.logo,
-              awayTeam: item.teams?.away?.name,
-              awayTeamLogo: item.teams?.away?.logo,
-              date: item.fixture?.date,
-              time: item.fixture?.date ? item.fixture.date.split('T')[1].substring(0, 5) : '00:00',
-              venue: item.fixture?.venue?.name,
-              status: item.fixture?.status?.short
-            }));
-            return res.json(matches);
-          }
-
-          if (Array.isArray(data) && data.length > 0) return res.json(data);
-        } catch (apiError) {
-          console.error('API Fetch Error:', apiError);
-        }
-      }
-    }
-
-    // Fallback Mock Data
-    res.json([
-      {
-        id: 1,
-        homeTeam: 'Brazil',
-        homeTeamLogo: 'https://placehold.co/60x60/png?text=BRA',
-        awayTeam: 'Russia',
-        awayTeamLogo: 'https://placehold.co/60x60/png?text=RUS',
-        date: '2024-02-15',
-        time: '15:00',
-        venue: 'Stadium A'
-      },
-      {
-        id: 2,
-        homeTeam: 'India',
-        homeTeamLogo: 'https://placehold.co/60x60/png?text=IND',
-        awayTeam: 'China',
-        awayTeamLogo: 'https://placehold.co/60x60/png?text=CHN',
-        date: '2024-02-16',
-        time: '18:00',
-        venue: 'Stadium B'
-      }
-    ]);
-  } catch (error) {
-    console.error('Error fetching matches:', error);
-    // Return mock data on error
-    res.json([
-      { id: 1, homeTeam: 'Brazil', homeTeamLogo: 'https://placehold.co/60x60/png?text=BRA', awayTeam: 'Russia', awayTeamLogo: 'https://placehold.co/60x60/png?text=RUS', date: '2024-02-15', time: '15:00', venue: 'Stadium A' }
-    ]);
-  }
-});
-
 // Feature Routes
 // Note: We mount these BEFORE the safe endpoints so specific routes (like /api/football/sync) take precedence
 app.use('/api/referees', refereeRoutes);
@@ -626,7 +548,9 @@ app.use('/api', competitionRoutes);
 app.use('/api', userRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/matches', matchRoutes);
-console.log('✅ Mounted /api/matches routes');
+app.use('/api/reports', matchReportRoutes);
+app.use('/api/seed', seedRoutes);
+console.log('✅ Mounted /api/matches, /api/reports, and /api/seed routes');
 
 // Dashboard endpoints
 app.get(['/api/admin/stats', '/api/admin/dashboard'], auth, requireRole(['ADMIN', 'SECRETARIAT', 'FEDERATION_OFFICIAL']), async (req, res) => {

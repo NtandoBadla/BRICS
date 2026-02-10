@@ -56,6 +56,7 @@ export default function RefereeDashboard() {
         const reportsRes = await fetch(`${API_URL}/api/referees/reports?refereeId=${myProfile.id}`, { headers });
         if (reportsRes.ok) {
           const reportsData = await reportsRes.json();
+          console.log('Referee reports:', reportsData);
           setReports(reportsData);
         }
       }

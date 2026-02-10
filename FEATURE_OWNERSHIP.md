@@ -414,7 +414,7 @@ GET    /api/public/search              // Search content
 
 #### Database Models:
 ```prisma
-model Workflow {
+model Workflow {.env
   id          String         @id @default(uuid())
   name        String
   description String?

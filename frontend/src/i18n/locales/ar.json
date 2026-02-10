@@ -1,0 +1,72 @@
+{
+  "common": {
+    "welcome": "مرحباً",
+    "login": "تسجيل الدخول",
+    "logout": "تسجيل الخروج",
+    "register": "التسجيل",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "submit": "إرسال",
+    "cancel": "إلغاء",
+    "save": "حفظ",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "search": "بحث",
+    "loading": "جاري التحميل...",
+    "error": "حدث خطأ",
+    "success": "نجح",
+    "home": "الرئيسية",
+    "dashboard": "لوحة التحكم",
+    "settings": "الإعدادات",
+    "profile": "الملف الشخصي",
+    "language": "اللغة"
+  },
+  "auth": {
+    "signIn": "تسجيل الدخول",
+    "signUp": "إنشاء حساب",
+    "signOut": "تسجيل الخروج",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "rememberMe": "تذكرني",
+    "noAccount": "ليس لديك حساب؟",
+    "hasAccount": "لديك حساب بالفعل؟",
+    "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+    "welcomeBack": "مرحباً بعودتك إلى BIFA",
+    "signInSubtitle": "أدخل بيانات الاعتماد الخاصة بك للوصول إلى حسابك"
+  },
+  "nav": {
+    "home": "الرئيسية",
+    "about": "حول",
+    "matches": "المباريات",
+    "teams": "الفرق",
+    "news": "الأخبار",
+    "contact": "اتصل بنا"
+  },
+  "roles": {
+    "admin": "المسؤول",
+    "secretariat": "الأمانة",
+    "referee": "الحكم",
+    "teamManager": "مدير الفريق",
+    "federationOfficial": "مسؤول الاتحاد"
+  },
+  "dashboard": {
+    "welcome": "مرحباً بك في لوحة التحكم الخاصة بك",
+    "overview": "نظرة عامة",
+    "recentActivity": "النشاط الأخير",
+    "quickActions": "إجراءات سريعة",
+    "statistics": "الإحصائيات"
+  },
+  "federation": {
+    "name": "BIFA",
+    "fullName": "اتحاد بوروندي لكرة القدم",
+    "motto": "الوحدة من خلال كرة القدم",
+    "description": "الهيئة الرسمية الحاكمة لكرة القدم في بوروندي"
+  },
+  "public": {
+    "heroTitle": "رابطة كرة القدم بريكس",
+    "heroSubtitle": "بوابتك إلى مسابقات ومباريات كرة القدم",
+    "latestNews": "آخر الأخبار",
+    "upcomingMatches": "المباريات القادمة",
+    "leagueStandings": "ترتيب الدوري"
+  }
+}

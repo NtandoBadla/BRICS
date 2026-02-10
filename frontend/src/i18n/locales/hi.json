@@ -1,0 +1,72 @@
+{
+  "common": {
+    "welcome": "स्वागत है",
+    "login": "लॉगिन",
+    "logout": "लॉगआउट",
+    "register": "पंजीकरण करें",
+    "email": "ईमेल",
+    "password": "पासवर्ड",
+    "confirmPassword": "पासवर्ड की पुष्टि करें",
+    "submit": "जमा करें",
+    "cancel": "रद्द करें",
+    "save": "सहेजें",
+    "delete": "हटाएं",
+    "edit": "संपादित करें",
+    "search": "खोजें",
+    "loading": "लोड हो रहा है...",
+    "error": "एक त्रुटि हुई",
+    "success": "सफलता",
+    "home": "होम",
+    "dashboard": "डैशबोर्ड",
+    "settings": "सेटिंग्स",
+    "profile": "प्रोफ़ाइल",
+    "language": "भाषा"
+  },
+  "auth": {
+    "signIn": "साइन इन करें",
+    "signUp": "साइन अप करें",
+    "signOut": "साइन आउट करें",
+    "forgotPassword": "पासवर्ड भूल गए?",
+    "rememberMe": "मुझे याद रखें",
+    "noAccount": "खाता नहीं है?",
+    "hasAccount": "पहले से खाता है?",
+    "invalidCredentials": "अमान्य ईमेल या पासवर्ड",
+    "welcomeBack": "BIFA में आपका स्वागत है",
+    "signInSubtitle": "अपने खाते तक पहुंचने के लिए अपनी साख दर्ज करें"
+  },
+  "nav": {
+    "home": "होम",
+    "about": "के बारे में",
+    "matches": "मैच",
+    "teams": "टीमें",
+    "news": "समाचार",
+    "contact": "संपर्क करें"
+  },
+  "roles": {
+    "admin": "प्रशासक",
+    "secretariat": "सचिवालय",
+    "referee": "रेफरी",
+    "teamManager": "टीम प्रबंधक",
+    "federationOfficial": "संघ अधिकारी"
+  },
+  "dashboard": {
+    "welcome": "अपने डैशबोर्ड में आपका स्वागत है",
+    "overview": "अवलोकन",
+    "recentActivity": "हाल की गतिविधि",
+    "quickActions": "त्वरित क्रियाएं",
+    "statistics": "आंकड़े"
+  },
+  "federation": {
+    "name": "BIFA",
+    "fullName": "बुरुंडी फुटबॉल महासंघ",
+    "motto": "फुटबॉल के माध्यम से एकता",
+    "description": "बुरुंडी में फुटबॉल की आधिकारिक शासी निकाय"
+  },
+  "public": {
+    "heroTitle": "ब्रिक्स फुटबॉल एसोसिएशन",
+    "heroSubtitle": "फुटबॉल प्रतियोगिताओं और मैचों के लिए आपका प्रवेश द्वार",
+    "latestNews": "ताज़ा खबर",
+    "upcomingMatches": "आगामी मैच",
+    "leagueStandings": "लीग स्टैंडिंग"
+  }
+}

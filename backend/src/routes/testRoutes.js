@@ -1,4 +1,5 @@
 import express from 'express';
+const { testMatchAssignmentEmail } = require('../controllers/testEmailController');
 
 const router = express.Router();
 
@@ -14,5 +15,8 @@ router.get('/test', (req, res) => {
     }
   });
 });
+
+// Test email endpoint
+router.get('/test-email', testMatchAssignmentEmail);
 
 export default router;

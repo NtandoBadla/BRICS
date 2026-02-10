@@ -1,0 +1,72 @@
+{
+  "common": {
+    "welcome": "خوش آمدید",
+    "login": "ورود",
+    "logout": "خروج",
+    "register": "ثبت نام",
+    "email": "ایمیل",
+    "password": "رمز عبور",
+    "confirmPassword": "تایید رمز عبور",
+    "submit": "ارسال",
+    "cancel": "لغو",
+    "save": "ذخیره",
+    "delete": "حذف",
+    "edit": "ویرایش",
+    "search": "جستجو",
+    "loading": "در حال بارگذاری...",
+    "error": "خطایی رخ داد",
+    "success": "موفق",
+    "home": "خانه",
+    "dashboard": "داشبورد",
+    "settings": "تنظیمات",
+    "profile": "پروفایل",
+    "language": "زبان"
+  },
+  "auth": {
+    "signIn": "ورود",
+    "signUp": "ثبت نام",
+    "signOut": "خروج",
+    "forgotPassword": "رمز عبور را فراموش کردهاید؟",
+    "rememberMe": "مرا به خاطر بسپار",
+    "noAccount": "حساب کاربری ندارید؟",
+    "hasAccount": "قبلاً حساب کاربری دارید؟",
+    "invalidCredentials": "ایمیل یا رمز عبور نامعتبر",
+    "welcomeBack": "به BIFA خوش آمدید",
+    "signInSubtitle": "اطلاعات خود را برای دسترسی به حساب کاربری وارد کنید"
+  },
+  "nav": {
+    "home": "خانه",
+    "about": "درباره",
+    "matches": "مسابقات",
+    "teams": "تیمها",
+    "news": "اخبار",
+    "contact": "تماس"
+  },
+  "roles": {
+    "admin": "مدیر",
+    "secretariat": "دبیرخانه",
+    "referee": "داور",
+    "teamManager": "مدیر تیم",
+    "federationOfficial": "مقام فدراسیون"
+  },
+  "dashboard": {
+    "welcome": "به داشبورد خود خوش آمدید",
+    "overview": "نمای کلی",
+    "recentActivity": "فعالیت اخیر",
+    "quickActions": "اقدامات سریع",
+    "statistics": "آمار"
+  },
+  "federation": {
+    "name": "BIFA",
+    "fullName": "فدراسیون فوتبال بوروندی",
+    "motto": "اتحاد از طریق فوتبال",
+    "description": "نهاد رسمی حاکم فوتبال در بوروندی"
+  },
+  "public": {
+    "heroTitle": "انجمن فوتبال بریکس",
+    "heroSubtitle": "دروازه شما به مسابقات و بازیهای فوتبال",
+    "latestNews": "آخرین اخبار",
+    "upcomingMatches": "مسابقات آینده",
+    "leagueStandings": "ردهبندی لیگ"
+  }
+}

@@ -73,6 +73,7 @@ export default function SecretariatPage() {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       const data = await res.json();
+      console.log('Fetched reports:', data);
       setReports(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching reports:', error);
@@ -82,10 +83,11 @@ export default function SecretariatPage() {
 
   const fetchCompetitions = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/competitions`, {
+      const res = await fetch(`${API_URL}/api/competitions?createdByRole=SECRETARIAT`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       const data = await res.json();
+      console.log('Fetched competitions:', data.length, data);
       setCompetitions(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching competitions:', error);
@@ -233,6 +235,7 @@ export default function SecretariatPage() {
               <TabsTrigger value="matches">Matches</TabsTrigger>
               <TabsTrigger value="referees">Referees</TabsTrigger>
               <TabsTrigger value="reports">Reports</TabsTrigger>
+              <TabsTrigger value="governance">Governance</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview">
@@ -330,12 +333,17 @@ export default function SecretariatPage() {
                     </form>
                   )}
                   <div className="space-y-3">
-                    {competitions.map((comp) => (
-                      <div key={comp.id} className="border rounded-lg p-4">
-                        <h3 className="font-semibold">{comp.name}</h3>
-                        <p className="text-sm text-gray-600">{comp.location} - {comp.format}</p>
-                      </div>
-                    ))}
+                    {competitions.length === 0 ? (
+                      <p className="text-gray-500 text-sm">No competitions created by secretariat yet</p>
+                    ) : (
+                      competitions.map((comp) => (
+                        <div key={comp.id} className="border rounded-lg p-4">
+                          <h3 className="font-semibold">{comp.name}</h3>
+                          <p className="text-sm text-gray-600">{comp.location} - {comp.format}</p>
+                          <p className="text-xs text-gray-500 mt-1">Created by: {comp.creator?.firstName} {comp.creator?.lastName}</p>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -496,6 +504,16 @@ export default function SecretariatPage() {
                       ))
                     )}
                   </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="governance">
+              <Card>
+                <CardHeader><CardTitle>Governance & Approvals</CardTitle></CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-600 mb-4">Manage team registrations, document approvals, and audit logs</p>
+                  <Button onClick={() => window.location.href = '/governance'}>Open Governance Portal</Button>
                 </CardContent>
               </Card>
             </TabsContent>

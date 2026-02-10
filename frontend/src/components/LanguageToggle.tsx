@@ -11,6 +11,14 @@ import { Globe } from 'lucide-react';
 const languages = [
   { code: 'en', label: 'English', flag: '🇬🇧' },
   { code: 'fr', label: 'Français', flag: '🇫🇷' },
+  { code: 'pt', label: 'Português', flag: '🇧🇷' },
+  { code: 'ru', label: 'Русский', flag: '🇷🇺' },
+  { code: 'hi', label: 'हिन्दी', flag: '🇮🇳' },
+  { code: 'zh', label: '中文', flag: '🇨🇳' },
+  { code: 'ar', label: 'العربية', flag: '🇸🇦' },
+  { code: 'am', label: 'አማርኛ', flag: '🇪🇹' },
+  { code: 'fa', label: 'فارسی', flag: '🇮🇷' },
+  { code: 'id', label: 'Bahasa Indonesia', flag: '🇮🇩' },
 ];
 
 export function LanguageToggle() {

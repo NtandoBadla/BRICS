@@ -1,5 +1,6 @@
 const prisma = require('../prisma');
 const bcrypt = require('bcryptjs');
+const { sendMatchAssignmentEmail } = require('../services/emailService');
 
 // Referee Management
 const createReferee = async (req, res) => {
@@ -111,12 +112,47 @@ const getRefereeAssignments = async (req, res) => {
 const createAssignment = async (req, res) => {
   try {
     const { matchId, refereeId, role } = req.body;
+    console.log('📝 Creating assignment:', { matchId, refereeId, role });
+    
     const assignment = await prisma.matchAssignment.create({
       data: { matchId, refereeId, role, status: 'PENDING' },
-      include: { match: true, referee: { include: { user: true } } }
+      include: { 
+        match: { 
+          include: { 
+            homeTeam: true, 
+            awayTeam: true, 
+            competition: true 
+          } 
+        }, 
+        referee: { include: { user: true } } 
+      }
     });
+
+    console.log('✅ Assignment created:', assignment.id);
+
+    // Send email notification
+    try {
+      const matchDate = new Date(assignment.match.scheduledAt);
+      const emailResult = await sendMatchAssignmentEmail(
+        assignment.referee.user.email,
+        `${assignment.referee.user.firstName} ${assignment.referee.user.lastName}`,
+        {
+          homeTeam: assignment.match.homeTeam.name,
+          awayTeam: assignment.match.awayTeam.name,
+          date: matchDate.toLocaleDateString(),
+          time: matchDate.toLocaleTimeString(),
+          venue: assignment.match.venue,
+          role: role
+        }
+      );
+      console.log('📧 Email result:', emailResult);
+    } catch (emailError) {
+      console.error('⚠️ Email failed but assignment created:', emailError.message);
+    }
+
     res.status(201).json(assignment);
   } catch (error) {
+    console.error('❌ Create assignment error:', error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -150,25 +186,40 @@ const declineAssignment = async (req, res) => {
 // Disciplinary Reports
 const createDisciplinaryReport = async (req, res) => {
   try {
+    console.log('📝 Creating disciplinary report:', req.body);
     const { matchId, refereeId, playerId, incident, action, minute, description } = req.body;
     
     // Validate match exists
     const match = await prisma.match.findUnique({ where: { id: matchId } });
     if (!match) {
+      console.error('❌ Match not found:', matchId);
       return res.status(404).json({ error: 'Match not found' });
     }
     
     // Validate referee exists
     const referee = await prisma.referee.findUnique({ where: { id: refereeId } });
     if (!referee) {
+      console.error('❌ Referee not found:', refereeId);
       return res.status(404).json({ error: 'Referee not found' });
+    }
+    
+    // Validate player exists if playerId is provided
+    if (playerId && playerId !== 'none') {
+      const player = await prisma.athlete.findUnique({ 
+        where: { id: playerId },
+        select: { id: true, firstName: true, lastName: true }
+      });
+      if (!player) {
+        console.error('❌ Player not found:', playerId);
+        return res.status(404).json({ error: 'Player not found' });
+      }
     }
     
     const report = await prisma.disciplinaryReport.create({
       data: {
         matchId,
         refereeId,
-        playerId: playerId || null,
+        playerId: (playerId && playerId !== 'none') ? playerId : null,
         incident,
         action,
         minute: minute ? parseInt(minute) : null,
@@ -177,8 +228,10 @@ const createDisciplinaryReport = async (req, res) => {
       },
       include: { match: true, referee: { include: { user: true } }, player: true }
     });
+    console.log('✅ Report created:', report.id);
     res.status(201).json(report);
   } catch (error) {
+    console.error('❌ Create report error:', error);
     res.status(500).json({ error: error.message });
   }
 };

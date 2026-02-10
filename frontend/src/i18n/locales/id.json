@@ -1,0 +1,72 @@
+{
+  "common": {
+    "welcome": "Selamat datang",
+    "login": "Masuk",
+    "logout": "Keluar",
+    "register": "Daftar",
+    "email": "Email",
+    "password": "Kata sandi",
+    "confirmPassword": "Konfirmasi kata sandi",
+    "submit": "Kirim",
+    "cancel": "Batal",
+    "save": "Simpan",
+    "delete": "Hapus",
+    "edit": "Edit",
+    "search": "Cari",
+    "loading": "Memuat...",
+    "error": "Terjadi kesalahan",
+    "success": "Berhasil",
+    "home": "Beranda",
+    "dashboard": "Dasbor",
+    "settings": "Pengaturan",
+    "profile": "Profil",
+    "language": "Bahasa"
+  },
+  "auth": {
+    "signIn": "Masuk",
+    "signUp": "Daftar",
+    "signOut": "Keluar",
+    "forgotPassword": "Lupa kata sandi?",
+    "rememberMe": "Ingat saya",
+    "noAccount": "Belum punya akun?",
+    "hasAccount": "Sudah punya akun?",
+    "invalidCredentials": "Email atau kata sandi tidak valid",
+    "welcomeBack": "Selamat datang kembali di BIFA",
+    "signInSubtitle": "Masukkan kredensial Anda untuk mengakses akun"
+  },
+  "nav": {
+    "home": "Beranda",
+    "about": "Tentang",
+    "matches": "Pertandingan",
+    "teams": "Tim",
+    "news": "Berita",
+    "contact": "Kontak"
+  },
+  "roles": {
+    "admin": "Administrator",
+    "secretariat": "Sekretariat",
+    "referee": "Wasit",
+    "teamManager": "Manajer Tim",
+    "federationOfficial": "Pejabat Federasi"
+  },
+  "dashboard": {
+    "welcome": "Selamat datang di Dasbor Anda",
+    "overview": "Ringkasan",
+    "recentActivity": "Aktivitas Terkini",
+    "quickActions": "Tindakan Cepat",
+    "statistics": "Statistik"
+  },
+  "federation": {
+    "name": "BIFA",
+    "fullName": "Federasi Sepak Bola Burundi",
+    "motto": "Persatuan Melalui Sepak Bola",
+    "description": "Badan pengatur resmi sepak bola di Burundi"
+  },
+  "public": {
+    "heroTitle": "Asosiasi Sepak Bola BRICS",
+    "heroSubtitle": "Gerbang Anda ke kompetisi dan pertandingan sepak bola",
+    "latestNews": "Berita Terbaru",
+    "upcomingMatches": "Pertandingan Mendatang",
+    "leagueStandings": "Klasemen Liga"
+  }
+}

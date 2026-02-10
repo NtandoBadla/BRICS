@@ -56,6 +56,7 @@ model User {
   nationalSquads    NationalSquad[]
   sentNotifications Notification[] @relation("NotificationSender")
   receivedNotifications Notification[] @relation("NotificationReceiver")
+  createdCompetitions Competition[] @relation("CompetitionCreator")
   
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -250,6 +251,8 @@ model Competition {
   location    String
   status      CompetitionStatus @default(DRAFT)
   format      CompetitionFormat
+  createdBy   String?
+  creator     User?             @relation("CompetitionCreator", fields: [createdBy], references: [id])
   matches     Match[]
   standings   Standing[]
   createdAt   DateTime          @default(now())

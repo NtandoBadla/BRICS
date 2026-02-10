@@ -1,0 +1,72 @@
+{
+  "common": {
+    "welcome": "እንኳን ደህና መጡ",
+    "login": "ግባ",
+    "logout": "ውጣ",
+    "register": "ተመዝገብ",
+    "email": "ኢሜይል",
+    "password": "የይለፍ ቃል",
+    "confirmPassword": "የይለፍ ቃል አረጋግጥ",
+    "submit": "አስገባ",
+    "cancel": "ሰርዝ",
+    "save": "አስቀምጥ",
+    "delete": "ሰርዝ",
+    "edit": "አርትዕ",
+    "search": "ፈልግ",
+    "loading": "በመጫን ላይ...",
+    "error": "ስህተት ተከስቷል",
+    "success": "ተሳክቷል",
+    "home": "መነሻ",
+    "dashboard": "ዳሽቦርድ",
+    "settings": "ቅንብሮች",
+    "profile": "መገለጫ",
+    "language": "ቋንቋ"
+  },
+  "auth": {
+    "signIn": "ግባ",
+    "signUp": "ተመዝገብ",
+    "signOut": "ውጣ",
+    "forgotPassword": "የይለፍ ቃል ረሱ?",
+    "rememberMe": "አስታውሰኝ",
+    "noAccount": "መለያ የለዎትም?",
+    "hasAccount": "ቀድሞውኑ መለያ አለዎት?",
+    "invalidCredentials": "ልክ ያልሆነ ኢሜይል ወይም የይለፍ ቃል",
+    "welcomeBack": "ወደ BIFA እንኳን ደህና መጡ",
+    "signInSubtitle": "መለያዎን ለመድረስ ምስክርነቶችዎን ያስገቡ"
+  },
+  "nav": {
+    "home": "መነሻ",
+    "about": "ስለ",
+    "matches": "ግጥሚያዎች",
+    "teams": "ቡድኖች",
+    "news": "ዜናዎች",
+    "contact": "ያግኙን"
+  },
+  "roles": {
+    "admin": "አስተዳዳሪ",
+    "secretariat": "ፀሐፊነት",
+    "referee": "ዳኛ",
+    "teamManager": "የቡድን አስተዳዳሪ",
+    "federationOfficial": "የፌዴሬሽን ባለስልጣን"
+  },
+  "dashboard": {
+    "welcome": "ወደ ዳሽቦርድዎ እንኳን ደህና መጡ",
+    "overview": "አጠቃላይ እይታ",
+    "recentActivity": "የቅርብ ጊዜ እንቅስቃሴ",
+    "quickActions": "ፈጣን እርምጃዎች",
+    "statistics": "ስታቲስቲክስ"
+  },
+  "federation": {
+    "name": "BIFA",
+    "fullName": "የቡሩንዲ እግር ኳስ ፌዴሬሽን",
+    "motto": "በእግር ኳስ አማካይነት አንድነት",
+    "description": "በቡሩንዲ ውስጥ የእግር ኳስ ኦፊሴላዊ አስተዳደር አካል"
+  },
+  "public": {
+    "heroTitle": "የብሪክስ እግር ኳስ ማህበር",
+    "heroSubtitle": "ወደ እግር ኳስ ውድድሮች እና ግጥሚያዎች መግቢያዎ",
+    "latestNews": "የቅርብ ጊዜ ዜናዎች",
+    "upcomingMatches": "የሚመጡ ግጥሚያዎች",
+    "leagueStandings": "የሊግ ደረጃዎች"
+  }
+}
