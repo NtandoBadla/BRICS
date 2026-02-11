@@ -103,6 +103,24 @@ app.get('/', async (req, res) => {
   });
 });
 
+// Debug endpoint for database counts (temporary)
+app.get('/api/debug/counts', async (req, res) => {
+  try {
+    const [users, referees, competitions, matches, teams] = await Promise.all([
+      prisma.user.count().catch(() => 0),
+      prisma.referee.count().catch(() => 0),
+      prisma.competition.count().catch(() => 0),
+      prisma.match.count().catch(() => 0),
+      prisma.team.count().catch(() => 0)
+    ]);
+    
+    res.json({ users, referees, competitions, matches, teams });
+  } catch (error) {
+    console.error('Debug counts error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Test email endpoint
 app.get('/api/test-email', async (req, res) => {
   try {
@@ -567,11 +585,12 @@ console.log('✅ Mounted /api/matches, /api/reports, and /api/seed routes');
 // Dashboard endpoints
 app.get(['/api/admin/stats', '/api/admin/dashboard'], auth, requireRole(['ADMIN', 'SECRETARIAT', 'FEDERATION_OFFICIAL']), async (req, res) => {
   try {
-    const [users, referees, documents, reports] = await Promise.all([
+    const [users, referees, documents, reports, competitions] = await Promise.all([
       prisma.user.count(),
       prisma.referee.count(),
-      prisma.document.count(),
-      prisma.disciplinaryReport.count(),
+      prisma.document.count().catch(() => 0),
+      prisma.disciplinaryReport.count().catch(() => 0),
+      prisma.competition.count().catch(() => 0)
     ]);
 
     const [teams, matches] = await Promise.all([
@@ -579,7 +598,7 @@ app.get(['/api/admin/stats', '/api/admin/dashboard'], auth, requireRole(['ADMIN'
       prisma.match.count().catch(() => 0)
     ]);
 
-    res.json({ users, referees, documents, reports, teams, matches });
+    res.json({ users, referees, documents, reports, competitions, teams, matches });
   } catch (error) {
     console.error('Dashboard/Stats Error:', error);
     res.status(500).json({ error: 'Failed to fetch dashboard stats' });

@@ -29,11 +29,19 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: typeof window !== 'undefined' ? localStorage.getItem('bifa-lang') || 'en' : 'en',
+    lng: 'en', // Always start with English on server
     fallbackLng: 'en',
     interpolation: {
       escapeValue: false,
     },
   });
+
+// Set language from localStorage after hydration
+if (typeof window !== 'undefined') {
+  const savedLang = localStorage.getItem('bifa-lang');
+  if (savedLang && savedLang !== i18n.language) {
+    i18n.changeLanguage(savedLang);
+  }
+}
 
 export default i18n;

@@ -8,6 +8,22 @@ const createReferee = async (req, res) => {
     console.log('✅ Create referee endpoint hit');
     const { firstName, lastName, email, licenseNumber, certification, experience } = req.body;
 
+    // Check if license number already exists
+    const existingReferee = await prisma.referee.findUnique({
+      where: { licenseNumber }
+    });
+    if (existingReferee) {
+      return res.status(400).json({ error: 'License number already exists' });
+    }
+
+    // Check if email already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email }
+    });
+    if (existingUser) {
+      return res.status(400).json({ error: 'Email already exists' });
+    }
+
     const hashedPassword = await bcrypt.hash(licenseNumber, 10);
 
     const user = await prisma.user.create({
@@ -36,7 +52,8 @@ const createReferee = async (req, res) => {
   } catch (error) {
     console.error('❌ Create referee error:', error.message);
     if (error.code === 'P2002') {
-      return res.status(400).json({ error: 'Email already exists' });
+      const field = error.meta?.target?.[0] || 'field';
+      return res.status(400).json({ error: `${field} already exists` });
     }
     res.status(500).json({ error: error.message });
   }

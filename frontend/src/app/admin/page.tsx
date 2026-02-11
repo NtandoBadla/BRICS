@@ -42,16 +42,24 @@ export default function AdminPage() {
       try {
         const token = localStorage.getItem('token');
         if (token) {
-          const users = await api.getUsers(token);
-          setStats(prev => ({ ...prev, totalUsers: users.length }));
+          const adminStats = await api.getAdminStats(token);
+          setStats({
+            totalUsers: adminStats.users || 0,
+            totalCompetitions: adminStats.competitions || 0,
+            totalMatches: adminStats.matches || 0,
+            totalReferees: adminStats.referees || 0,
+            loading: false
+          });
         }
       } catch (error) {
         console.error('Error fetching stats:', error);
-        console.error('Error details:', JSON.stringify(error, null, 2));
-        // Don't fail silently - set stats to 0 on error
-        setStats(prev => ({ ...prev, totalUsers: 0 }));
-      } finally {
-        setStats(prev => ({ ...prev, loading: false }));
+        setStats({
+          totalUsers: 0,
+          totalCompetitions: 0,
+          totalMatches: 0,
+          totalReferees: 0,
+          loading: false
+        });
       }
     };
 
@@ -131,7 +139,9 @@ export default function AdminPage() {
                 <Trophy className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">12</div>
+                <div className="text-2xl font-bold">
+                  {stats.loading ? '...' : stats.totalCompetitions}
+                </div>
                 <p className="text-xs text-muted-foreground">Active competitions</p>
               </CardContent>
             </Card>
@@ -142,8 +152,10 @@ export default function AdminPage() {
                 <Calendar className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">48</div>
-                <p className="text-xs text-muted-foreground">This month</p>
+                <div className="text-2xl font-bold">
+                  {stats.loading ? '...' : stats.totalMatches}
+                </div>
+                <p className="text-xs text-muted-foreground">Total matches</p>
               </CardContent>
             </Card>
 
@@ -153,7 +165,9 @@ export default function AdminPage() {
                 <Shield className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">24</div>
+                <div className="text-2xl font-bold">
+                  {stats.loading ? '...' : stats.totalReferees}
+                </div>
                 <p className="text-xs text-muted-foreground">Certified referees</p>
               </CardContent>
             </Card>

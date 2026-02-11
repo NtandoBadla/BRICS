@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -23,6 +24,14 @@ const languages = [
 
 export function LanguageToggle() {
   const { i18n } = useTranslation();
+
+  // Load saved language after hydration
+  useEffect(() => {
+    const savedLang = localStorage.getItem('bifa-lang');
+    if (savedLang && savedLang !== i18n.language) {
+      i18n.changeLanguage(savedLang);
+    }
+  }, [i18n]);
 
   const handleLanguageChange = (langCode: string) => {
     i18n.changeLanguage(langCode);

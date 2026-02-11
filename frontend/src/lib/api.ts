@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://brics-backend.onrender.com';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://brics-platform.onrender.com';
 
 // Error types for better error handling
 export interface ApiError {
@@ -169,6 +169,12 @@ class ApiService {
 
   async getUsers(token: string) {
     return this.requestWithRetry<any[]>('/api/users', {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+  }
+
+  async getAdminStats(token: string) {
+    return this.requestWithRetry<any>('/api/admin/stats', {
       headers: { 'Authorization': `Bearer ${token}` },
     });
   }
