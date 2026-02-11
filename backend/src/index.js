@@ -55,14 +55,26 @@ const { footballApi } = require('./services/footballApi');
 
 // CORS configuration
 const corsOptions = {
-  origin: '*', // Allow all origins temporarily for debugging
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:3001', 
+    'https://brics-platform.vercel.app',
+    'https://brics-platform.netlify.app',
+    'https://bifa-platform.vercel.app',
+    'https://bifa-platform.netlify.app',
+    'https://brics-backend.onrender.com'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  optionsSuccessStatus: 200
 };
 
 app.use(cors(corsOptions));
 app.use(express.json());
+
+// Handle preflight requests explicitly
+app.options('*', cors(corsOptions));
 
 const prisma = require('./prisma');
 
