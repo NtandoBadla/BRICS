@@ -53,17 +53,9 @@ const matchReportRoutes = require('./routes/matchReportRoutes');
 const seedRoutes = require('./routes/seedRoutes');
 const { footballApi } = require('./services/footballApi');
 
-// CORS configuration
+// CORS configuration - Allow access from anywhere
 const corsOptions = {
-  origin: [
-    'http://localhost:3000',
-    'http://localhost:3001', 
-    'https://brics-platform.vercel.app',
-    'https://brics-platform.netlify.app',
-    'https://bifa-platform.vercel.app',
-    'https://bifa-platform.netlify.app',
-    'https://brics-backend.onrender.com'
-  ],
+  origin: true, // Allow all origins
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
