@@ -233,11 +233,19 @@ const getMatches = async (req, res) => {
     
     // Format matches for frontend
     const formattedMatches = matches.map(match => ({
-      ...match,
+      id: match.id,
+      homeTeam: match.homeTeam.name,
+      awayTeam: match.awayTeam.name,
+      homeTeamLogo: match.homeTeam.logoUrl,
+      awayTeamLogo: match.awayTeam.logoUrl,
       date: match.scheduledAt.toISOString().split('T')[0],
       time: match.scheduledAt.toTimeString().slice(0, 5),
-      homeTeamLogo: match.homeTeam.logoUrl,
-      awayTeamLogo: match.awayTeam.logoUrl
+      venue: match.venue,
+      status: match.status,
+      homeScore: match.homeScore,
+      awayScore: match.awayScore,
+      competition: match.competition,
+      scheduledAt: match.scheduledAt
     }));
     
     res.json(formattedMatches);
