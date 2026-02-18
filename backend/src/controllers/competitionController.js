@@ -26,7 +26,18 @@ const createCompetition = async (req, res) => {
 
 const getCompetitions = async (req, res) => {
   try {
-    const { createdByRole } = req.query;
+    const { createdByRole, upcoming } = req.query;
+    
+    // Auto-delete old completed/cancelled competitions (older than 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    await prisma.competition.deleteMany({
+      where: {
+        endDate: { lt: thirtyDaysAgo },
+        status: { in: ['COMPLETED', 'CANCELLED'] }
+      }
+    });
     
     let whereClause = {};
     
@@ -35,6 +46,13 @@ const getCompetitions = async (req, res) => {
       whereClause.creator = {
         role: createdByRole
       };
+    }
+    
+    // Filter upcoming competitions only
+    if (upcoming === 'true') {
+      const now = new Date();
+      whereClause.endDate = { gte: now };
+      whereClause.status = { in: ['UPCOMING', 'ONGOING'] };
     }
     
     const competitions = await prisma.competition.findMany({
@@ -48,15 +66,21 @@ const getCompetitions = async (req, res) => {
             role: true
           }
         },
-        teams: true
+        matches: true
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { startDate: 'asc' }
     });
     
-    res.json(competitions);
+    // Add season field for compatibility
+    const competitionsWithSeason = competitions.map(comp => ({
+      ...comp,
+      season: new Date(comp.startDate).getFullYear().toString(),
+      teams: [] // Placeholder for compatibility
+    }));
+    
+    res.json(competitionsWithSeason);
   } catch (error) {
     console.error('Error fetching competitions:', error);
-    // Return empty array instead of error to prevent frontend issues
     res.json([]);
   }
 };
@@ -174,21 +198,51 @@ const createMatch = async (req, res) => {
 
 const getMatches = async (req, res) => {
   try {
-    // Always get from database
+    const { upcoming } = req.query;
+    
+    // Auto-delete old completed matches (older than 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    await prisma.match.deleteMany({
+      where: {
+        scheduledAt: { lt: thirtyDaysAgo },
+        status: { in: ['FULL_TIME', 'CANCELLED'] }
+      }
+    });
+    
+    let whereClause = {};
+    
+    // Filter upcoming matches only
+    if (upcoming === 'true') {
+      const now = new Date();
+      whereClause.scheduledAt = { gte: now };
+      whereClause.status = { in: ['SCHEDULED', 'LIVE'] };
+    }
+    
     const matches = await prisma.match.findMany({
+      where: whereClause,
       include: {
         homeTeam: true,
         awayTeam: true,
         competition: true,
         assignments: { include: { referee: { include: { user: true } } } }
       },
-      orderBy: { scheduledAt: 'desc' }
+      orderBy: { scheduledAt: 'asc' }
     });
     
-    res.json(matches);
+    // Format matches for frontend
+    const formattedMatches = matches.map(match => ({
+      ...match,
+      date: match.scheduledAt.toISOString().split('T')[0],
+      time: match.scheduledAt.toTimeString().slice(0, 5),
+      homeTeamLogo: match.homeTeam.logoUrl,
+      awayTeamLogo: match.awayTeam.logoUrl
+    }));
+    
+    res.json(formattedMatches);
   } catch (error) {
     console.error('Error fetching matches:', error);
-    // Return empty array instead of error to prevent frontend issues
     res.json([]);
   }
 };

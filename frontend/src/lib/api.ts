@@ -207,11 +207,11 @@ class ApiService {
   }
 
   async getCompetitions() {
-    return this.requestWithRetry<any[]>('/api/competitions');
+    return this.requestWithRetry<any[]>('/api/competitions?upcoming=true');
   }
 
   async getMatches() {
-    return this.requestWithRetry<any[]>('/api/competitions/matches');
+    return this.requestWithRetry<any[]>('/api/matches?upcoming=true');
   }
 
   async getFootballLeagues() {
