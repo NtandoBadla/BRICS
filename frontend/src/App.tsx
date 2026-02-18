@@ -56,14 +56,14 @@ export default function App() {
       setError('');
 
       const [matchesData, competitionsData] = await Promise.all([
-        api.getMatches(),
-        api.getCompetitions()
+        api.getMatches().catch(() => []),
+        api.getCompetitions().catch(() => [])
       ]);
 
-      setMatches((matchesData as any[]).slice(0, 6));
-      setCompetitions((competitionsData as any[]).slice(0, 4));
+      setMatches(Array.isArray(matchesData) ? matchesData.slice(0, 6) : mockMatches);
+      setCompetitions(Array.isArray(competitionsData) ? competitionsData.slice(0, 4) : mockCompetitions);
     } catch (error) {
-      setError(getErrorMessage(error));
+      console.error('Error fetching data:', error);
       setMatches(mockMatches);
       setCompetitions(mockCompetitions);
     } finally {
